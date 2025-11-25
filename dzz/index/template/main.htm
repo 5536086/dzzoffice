@@ -1,112 +1,275 @@
-<!--{template common/header_simple_start}-->
-<link href="static/css/common.css?{VERHASH}" rel="stylesheet" media="all">
-<script type="text/javascript" src="static/js/jquery.leftDrager.js?{VERHASH}"></script>
+<!--{template lyear:header_simple_start}-->
 <style>
-.resNav .navbar-nav > .open > a, .resNav .navbar-nav > .open > a:focus, .resNav .navbar-nav > .open > a:hover {
-    background-color:transparent;
-}
-	body{
-		font-size:16px;
-		line-height: 2
+	.bs-top-container,.sidebar-header {
+		background-color: #fff;
 	}
-	.main-content{
-		padding:50px
+	.navbar-right .nav-link{
+		color: inherit;
 	}
-	.h1, .h2, .h3, h1, h2, h3{
-		margin:30px 0;
-		line-height: 2
+	.sidebar-header a{
+		color: inherit !important;
 	}
-	
-	ol{
-		padding-left:20px;
+	.bs-main-container{
+		padding-left:0;
 	}
-	ol li{
-		list-style: inherit;
+	.ui-sortable-helper{
+		border:1px solid transparent;
+		opacity: 0.6;
 	}
-	p{
-		margin-bottom:20px;
+	.ui-state-default{
+		display: inline-block;
 	}
-	.main-content a{
-		padding:0 5px;
+	.card-market:hover,.card-market:focus-within{box-shadow:0px 0px 12px rgba(0, 0, 0, 0.12);transform:translatey(-5px)}
+	.app-icon {
+		width: 64px;
+		height: 64px;
+		margin: 0 auto 1rem;
+		display: flex;
+		align-items: center;
+		justify-content: center;
 	}
-	.help-block{
-		font-size:0.75em;
-	}
-	blockquote{
-		padding:0 20px;
-	}
-	.col-item {
-		line-height: 30px;
-		margin: 5px 0;
-		text-align: left;
-		position: relative;
-		padding-left:30px;
-		margin-left:10px;
-		margin-bottom: 15px;
-	}
-	.col-item:last-child {
-		margin-bottom:0;
-	}
-	.col-item.item-github{
-		
-		background-image: url(dzz/index/images/github.png) ;
-		background-position: left center;
-		background-repeat:  no-repeat;
-	}.col-item.item-gitee{
-		background-image: url(dzz/index/images/gitee.png);
-		background-position: left center;
-		background-repeat:  no-repeat;
-	}
-	.col-item.item-qqwpa{
-		background-image: url(dzz/index/images/qqwpa.png);
-		background-position: left center;
-		background-repeat:  no-repeat;
-
-	}
-	@media (max-width:767px){
-		.main-content{
-			padding:0;
-		}
-	}
+	.hero-card,.user-meta,.meta-info,.meta-badge,.hero-left{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center}
+	.hero-card{background:linear-gradient(135deg,#1890ff 0%,#007bff 100%);border-radius:12px;padding:35px;color:#fff;box-shadow:0 8px 25px rgba(24,144,255,0.25);margin-bottom:24px;-webkit-box-pack:justify;-ms-flex-pack:justify;justify-content:space-between;position:relative;overflow:hidden}
+	.hero-card .bg-icon{position:absolute;right:10%;bottom:-40px;font-size:220px;opacity:0.08;transform:rotate(-10deg);color:#fff;pointer-events:none}
+	.hero-left{z-index:2}
+	.user-meta{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-orient:vertical;-webkit-box-direction:normal;-ms-flex-direction:column;flex-direction:column;-webkit-box-pack:center;-ms-flex-pack:center;justify-content:center;align-items:flex-start}
+	.greeting-text{font-size:2rem;font-weight:700;margin-bottom:5px;line-height:1.2}
+	.meta-info{font-size:0.95rem;opacity:0.85;-ms-flex-wrap:wrap;flex-wrap:wrap}
+	.meta-badge{background:rgba(255,255,255,0.2);padding:2px 10px;border-radius:4px;font-size:0.8rem;margin-right:15px}
+	.hero-clock{text-align:right;z-index:2;padding-left:40px;border-left:1px solid rgba(255,255,255,0.15)}
+	@media (max-width:768px){.hero-clock{display:none}
+	.hero-card,.hero-left,.meta-info{-webkit-box-orient:vertical;-webkit-box-direction:normal;-ms-flex-direction:column;flex-direction:column;-webkit-box-align:start;-ms-flex-align:start;align-items:flex-start}
+	.hero-card{padding:25px}
+	.hero-clock{display:none}
+	.meta-info{margin-bottom:0}
+	.meta-badge{margin-right:0;margin-bottom:8px}
+	}.clock-time{font-size:3rem;font-weight:200;line-height:1;margin-bottom:5px;font-family:'Helvetica Neue',sans-serif}
+	.clock-date{font-size:1rem;opacity:0.85;letter-spacing:1px}
+	.stat-header{display:flex;align-items:center;margin-bottom:12px}
+	.stat-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;margin-right:12px}
+	.stat-value{font-size:1.25rem;font-weight:700;margin-bottom:4px;line-height:1.2}
+	.bg-blue-soft{background:#e6f7ff;color:#007bff}
+	.bg-teal-soft{background:#e6fffb;color:#13c2c2}
+	.bg-purple-soft{background:#f9f0ff;color:#722ed1}
+	.bg-orange-soft{background:#fff7e6;color:#fa8c16}
 </style>
+<!--{template lyear:header_simple_noleft_end}-->
+<main class="bs-main-container" style="padding-left: 0;">
+	<div class="container-fluid">
+		<div class="hero-card">
+			<i class="mdi mdi-chart-bubble bg-icon"></i> 
+			<div class="hero-left">
+				<div class="user-meta">
+					<div class="greeting-text"><span id="greeting">早上好！</span>$_G['username']</div>
+					<div class="meta-info">
+						<span class="meta-badge"><i class="mdi mdi-identifier me-1"></i> UID: $_G['uid']</span>
+						<span class="meta-badge"><i class="mdi mdi-email-outline me-1"></i> $_G['member']['email']</span>
+					</div>
+				</div>
+			</div>
 
-<!--{template common/header_simple_end}-->
-<!--模板body区域,直接加入自己的模板代码即可，body标签已经存在-->
-<!--{template commer_header}-->
-<div class="bs-container clearfix">
-  <div class="bs-main-container" style="margin-left:0;">
-    <div class="main-content container">
-		
-		<h2>{lang system_install_success}</h2>
-		<blockquote>
-		<p class="text-muted">{lang thank_you_of}</p>
-		<p class="text-danger">{lang after_installed_tip}</p>
-			<p><b>{lang after_installed_help}</b></p>
-   		<ol>
-			<li>{lang after_installed_step_one}
-				<p class="help-block">{lang after_installed_step_one_tip}</p>
-			</li>
-			<li>{lang after_installed_step_two}</li>
-		</ol>
-		
-   </blockquote>
-   		
-   		<div class="col-body" style="padding-top:30px;">
-   			<h3 >{lang Communication_and_feedback}</h3>
-   			<blockquote>
-			<div class="col-item item-github"><a href="https://github.com/zyx0814/dzzoffice/issues" target="_blank">GitHub</a></div>
-			<div class="col-item item-gitee"><a href="https://gitee.com/zyx0814/dzzoffice/issues" target="_blank">码云</a></div>
-			<div class="col-item item-qqwpa"><a href="http://shang.qq.com/wpa/qunwpa?idkey=e8f8edf6c0ce50fd5916ea6e1ecf16ecbef3759c1d0dfc4e9a8dc89fcec2f211" title="DzzOffice交流群 240726 " target="_blank">QQ群 240726</a></div>
-			</blockquote>
+			<div class="hero-clock">
+				<div class="clock-time" id="time">--:--:--</div>
+				<div class="clock-date"><span id="current-date"></span><span class="ps-2" id="weekday"></span></div>
+			</div>
 		</div>
-   		
-    </div>
-  </div>
+		<div class="stats-grid row">
+			<div class="col-sm-6 col-md-6 col-lg-3">
+				<div class="card">
+				<div class="card-body">
+					<div class="stat-header">
+						<div class="stat-icon bg-blue-soft"><i class="mdi mdi-cloud"></i></div>
+						<span class="text-muted">云盘空间</span>
+					</div>
+					<div class="stat-value">$space['fusesize'] <small class="text-muted fw-normal fs-6">/ $space['fmaxspacesize']</small></div>
+					<div class="text-muted">我的网盘空间</div>
+				</div>
+				</div>
+			</div>
+			<!--{if $userstatus['lastvisit']}-->
+			<div class="col-sm-6 col-md-6 col-lg-3">
+			<div class="card">
+				<div class="card-body">
+				<div class="stat-header">
+					<div class="stat-icon bg-teal-soft"><i class="mdi mdi-calendar-clock"></i></div>
+					<span class="text-muted">最近活跃时间</span>
+				</div>
+				<div class="stat-value"><!--{eval echo dgmdate($userstatus['lastvisit'], 'u')}--></div>
+				<div class="text-muted">上次访问时间</div>
+				</div> 
+			</div>
+			</div>
+			<!--{/if}-->
+			<div class="col-sm-6 col-md-6 col-lg-3">
+			<div class="card">
+				<div class="card-body">
+				<div class="stat-header">
+					<div class="stat-icon bg-purple-soft"><i class="mdi mdi-calendar-heart"></i></div>
+					<span class="text-muted">加入时间</span>
+				</div>
+				<div class="stat-value"><!--{eval echo dgmdate($_G['member']['regdate'])}--></div> 
+				<div class="text-muted">已加入 <span class="fw-bold text-primary">$regdatedays</span> 天</div>
+				</div>
+			</div>
+			</div>
+			<div class="col-sm-6 col-md-6 col-lg-3">
+			<div class="card">
+				<div class="card-body">
+				<div class="stat-header">
+					<div class="stat-icon bg-orange-soft"><i class="mdi mdi-shield-account"></i></div>
+					<span class="text-muted">当前用户组</span>
+				</div>
+				<div class="stat-value">$_G['group']['grouptitle']</div>
+				<div class="text-muted">级别和权限定义</div>
+				</div> 
+			</div>
+			</div>
+		</div>
+		<!--{if $applist_1}-->
+		<div class="row ui-sortable">
+			<!--{loop $applist_1 $key $value}-->
+			<div class="popup-index-li col-xxl-2 col-xl-3 col-lg-3 col-md-4 col-sm-6 col-12" data-appid="$value[appid]">
+				<a <!--{if $value['open']}-->target="_blank"<!--{/if}--> href="$value[url]" title="$value[appname]" class="card card-market border m-2">
+				<div class="card-body text-center">
+					<img src="$value[appico]" class="app-icon">
+					<div class="card-title text-body text-truncate">$value[appname]</div>
+				</div>
+				</a>
+			</div>
+			<!--{/loop}-->
+		</div>
+		<!--{/if}-->
+		<footer class="text-center text-muted m-3 mt-5">
+			<!--{template lyear:copyright}-->
+		</footer>
+	</div>
 </div>
-
+</main>
 <script type="text/javascript">
-	jQuery('.left-drager').leftDrager_layout();
-	
+	jQuery(document).ready(function(){
+		jQuery('.ui-sortable').sortable({
+			placeholder: "ui-state-default col-xxl-2 col-xl-3 col-lg-3 col-md-4 col-sm-6 col-12 border card",
+			items: "div.popup-index-li",
+			stop: function(event, ui) {
+				var appids=[];
+				jQuery('.popup-index-li').each(function(){
+					appids.push(jQuery(this).data('appid'));
+				});
+				jQuery.post('{MOD_URL}&do=saveIndex',{"appids":appids});
+			}
+		});
+	});
 </script>
-<script src="static/bootstrap/js/bootstrap.min.js?{VERHASH}"></script>
-<!--{template common/footer_simple}-->
+<script type="text/javascript" src="static/jquery/jquery-ui.js?{VERHASH}"></script>
+<script>
+	// 服务器时间初始化
+	var serverTimestamp = '$servertime'; 
+	var clientTimestampAtLoad = Date.now();
+	var timeOffset = serverTimestamp - clientTimestampAtLoad;
+	
+	// 获取当前服务器时间
+	function getServerTime() {
+		return new Date(Date.now() + timeOffset);
+	}
+	// 为IE添加String.prototype.padStart的polyfill
+	if (!String.prototype.padStart) {
+		String.prototype.padStart = function padStart(targetLength, padString) {
+			targetLength = targetLength >> 0; //floor if number or convert non-number to 0;
+			padString = String(typeof padString !== 'undefined' ? padString : ' ');
+			if (this.length >= targetLength) {
+				return String(this);
+			} else {
+				targetLength = targetLength - this.length;
+				if (targetLength > padString.length) {
+					padString += padString.repeat(targetLength / padString.length); //append to original to ensure we are longer than needed
+				}
+				return padString.slice(0, targetLength) + String(this);
+			}
+		};
+	}
+
+	$(document).ready(function() {
+		// 时间格式和显示选项
+		var showSeconds = true;
+		
+		// 更新问候语
+		function updateGreeting() {
+			var now = getServerTime();
+			var hour = now.getHours();
+			var greeting = '';
+			
+			if (hour < 6) {
+				greeting = '凌晨好！';
+			} else if (hour < 9) {
+				greeting = '早上好！';
+			} else if (hour < 12) {
+				greeting = '上午好！';
+			} else if (hour < 14) {
+				greeting = '中午好！';
+			} else if (hour < 18) {
+				greeting = '下午好！';
+			} else if (hour < 22) {
+				greeting = '晚上好！';
+			} else {
+				greeting = '夜深了！';
+			}
+			
+			$('#greeting').text(greeting);
+		}
+		
+		// 更新日期显示
+		function updateDate() {
+			var now = getServerTime();
+			var options = {year: 'numeric', month: 'long', day: 'numeric' };
+			var dateString = now.toLocaleDateString('zh-CN', options);
+			var weekday = now.toLocaleDateString('zh-CN', { weekday: 'long' });
+			$('#current-date').text(dateString);
+			$('#weekday').text(weekday);
+		}
+		
+		// 更新时间显示
+		function updateTime() {
+			var now = getServerTime();
+			var hours = now.getHours();
+			var minutes = now.getMinutes();
+			var seconds = now.getSeconds();
+			var ampm = '';
+			
+			// 补零
+			hours = hours.toString().padStart(2, '0');
+			minutes = minutes.toString().padStart(2, '0');
+			seconds = seconds.toString().padStart(2, '0');
+
+			var timeString = hours + ':' + minutes;
+			if (showSeconds) {
+				timeString += ':' + seconds;
+			}
+
+			$('#time').text(timeString);
+		}
+		
+		// 初始化所有显示
+		function initializeDisplay() {
+			updateGreeting();
+			updateDate();
+			updateTime();
+		}
+		
+		// 每秒更新时间
+		setInterval(function() {
+			updateTime();
+		}, 1000);
+		
+		// 每分钟更新日期和进度
+		setInterval(function() {
+			updateDate();
+		}, 60000);
+		
+		// 每小时更新问候语
+		setInterval(updateGreeting, 3600000);
+		
+		// 初始化显示
+		initializeDisplay();
+	});
+</script>
+<!--{template lyear:footer_simple}-->

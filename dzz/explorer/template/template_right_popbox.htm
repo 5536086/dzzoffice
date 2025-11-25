@@ -1,0 +1,136 @@
+<ul class="right_popbox_header">
+	<li class="popbox_li numer_admin d-flex">
+		<div class="dropdown-item-text">
+			<i class="mdi mdi-account-tie text-danger"></i>
+			<span class="rightdropdown_admin permgrouptextspan">
+				<!--{if $userinfos['perm'] == 0}-->
+					{lang explorer_groupperm_cooperative}
+				<!--{elseif $userinfos['perm'] == 1}-->
+					{lang explorer_groupperm_manager}
+				<!--{elseif $userinfos['perm'] == 2}-->
+					{lang explorer_groupperm_creater}
+				<!--{/if}-->
+			</span>
+		</div>
+	</li>
+	<!--{if $perm >1 && $userinfos['perm'] != 2}-->
+	<li class="popbox_li doperm dropend">
+		<a class="dropdown-item dropdown-toggle" href="javascript:;" data-toggle="dropdown" aria-expanded="false">{lang perm_edit}</a>
+		<ul class="right_popbox_header popbox-header-twomenu dropdown-menu">
+			<!--{if $group['type'] == 1}-->
+			<li class="popbox_li permedit" data-perm="2">
+				<a class="dropdown-item" href="javascript:;">
+				<span class="mdi mdi-check mdi-fit"></span>
+				<span class="popbox-text">{lang explorer_groupperm_creater}</span>
+				</a>
+			</li >
+			<!--{/if}-->
+			<li class="popbox_li permedit" data-perm="1">
+				<a class="dropdown-item" href="javascript:;">
+				<!--{if $userinfos['perm'] == 1}-->
+					<span class="mdi mdi-check mdi-fit mdi-color"></span>
+					<span class="popbox-text" style="color:#4c89fb;">{lang explorer_groupperm_manager}</span>
+				<!--{else}-->
+					<span class="mdi mdi-check mdi-fit"></span>
+					<span class="popbox-text" >{lang explorer_groupperm_manager}</span>
+				<!--{/if}-->
+				</a>
+			</li>
+			<li class="popbox_li permedit" data-perm="0">
+				<a class="dropdown-item" href="javascript:;">
+					<!--{if $userinfos['perm'] == 0}-->
+					<span class="mdi mdi-check mdi-fit mdi-color"></span>
+					<span class="popbox-text" style="color:#4c89fb;">{lang explorer_groupperm_cooperative}</span>
+					<!--{else}-->
+					<span class="mdi mdi-check mdi-fit"></span>
+					<span class="popbox-text" >{lang explorer_groupperm_cooperative}</span>
+					<!--{/if}-->
+				</a>
+			</li>
+		</ul>
+	</li>
+	<!--{/if}-->
+	<!--{if ($perm > $userinfos['perm'] || ($_G['adminid'] == 1 && $userinfos['perm'] != 2)) && $group['type']}-->
+	<li class="popbox_li removeuser">
+		<a class="dropdown-item" href="javascript:;"><span class="popbox-text">{lang delete_member}</span></a>
+	</li>
+	<!--{/if}-->
+</ul>
+    			
+<script>
+	var gid = '{$gid}';
+	var orgtype = '{$group['type']}';
+    jQuery(document).off('click.editgroupperm').on('click.editgroupperm','.popbox-header-twomenu .permedit',function(){
+       var currentUid = '{$userinfos['uid']}';
+       var obj = jQuery(this);
+       var perm = obj.data('perm');
+      if (perm == 2) {
+         if(!confirm(__lang.confirm_change_creater)){
+         	return false;
+         }
+      }
+       var text = obj.find('.popbox-text').text();
+       jQuery.post(MOD_URL+'&op=group&do=right_popbox&operation=setmemberperm&ajaxdata=json&gid='+gid,{'guid':currentUid,'perm':perm},function(data){
+			if(data['success']){
+			    if(perm > 1  && orgtype == 1){
+                    var html = '{lang explorer_groupperm_creater}';
+				}else if(perm > 0){
+                    var html = '{lang explorer_groupperm_manager}';
+				}else{
+				    var html = '{lang explorer_groupperm_cooperative}';
+				}
+				jQuery('.'+currentUid+'_delete .perm-name').html(html);
+                var dzzFit=obj.find('.mdi-fit');                 
+                dzzFit.addClass('mdi-color').closest('.popbox_li').siblings().find('.mdi-fit').removeClass('mdi-color');
+                if(dzzFit.hasClass('mdi-color')){
+                    obj.find('.popbox-text').css({'color':'#4c89fb'}).closest('.popbox_li').siblings().find('.popbox-text').css({'color':'#333'});
+                    obj.closest('.doperm').siblings('.numer_admin').find('.permgrouptextspan').text(text);
+                }
+				showmessage(data['success'],'success',3000,1);
+			} else if(data['msg']) {
+				showmessage(data['msg'], 'error', 3000, 1);
+			} else {
+                showmessage('{lang do_failed}', 'error', 3000, 1);
+            }
+	   },'json').fail(function (jqXHR, textStatus, errorThrown) {
+			showmessage('{lang do_failed}', 'error', 3000, 1);
+		});
+	})
+
+    jQuery(document).off('click.removeuser').on('click.removeuser','.right_popbox_header .removeuser',function(){
+        var obj = jQuery(this);
+		layer.confirm('{lang delete_member_confirm_info}', {skin:'lyear-skin-danger'}, function(index){
+			layer.msg('{lang deleting_not_please_close}', {offset:'10px',time:0});
+			var currentdouid = '{$_G['uid']}';
+             var currentUid = '{$userinfos['uid']}';
+             jQuery.post(MOD_URL+'&op=group&do=right_popbox&operation=deletemember&ajaxdata=json', {
+                 'gid': gid,
+                 'uids': currentUid
+             }, function (data) {
+                 if (data['success']) {
+                     var useridsarr = userids.split(',');
+                     for (var o in data['uids']) {
+                         var index = $.inArray(data['uids'][o],useridsarr);
+                         useridsarr.splice(index,1);
+                         userids = useridsarr.join(',');
+                         if (data['uids'][o] == currentdouid) {
+                             jQuery('.' + data['uids'][o] + '_delete').remove();
+                             location.hash = "#recent";
+                         } else {
+                             jQuery('.' + data['uids'][o] + '_delete').remove();
+                         }
+                         jQuery('.member_details_info').popbox('close');
+                     }
+					 layer.msg('{lang delete_success}', {offset:'10px'});
+                 } else if(data['msg']) {
+					layer.alert(data['msg'], {skin:'lyear-skin-danger'});
+				 } else {
+					layer.alert('{lang do_failed}', {skin:'lyear-skin-danger'});
+                 }
+                 return false;
+             }, 'json').fail(function (jqXHR, textStatus, errorThrown) {
+				layer.alert('{lang do_failed}', {skin:'lyear-skin-danger'});
+			});
+		});
+	})
+</script>

@@ -4,10 +4,8 @@ if (!defined('IN_DZZ')) {
 }
 require_once libfile('function/code');
 
-class table_resources_event extends dzz_table
-{
-    public function __construct()
-    {
+class table_resources_event extends dzz_table {
+    public function __construct() {
 
         $this->_table = 'resources_event';
         $this->_pk = 'id';
@@ -16,14 +14,13 @@ class table_resources_event extends dzz_table
     }
 
     //添加群组动态
-    public function addevent_by_pfid($pfid, $event, $do, $eventdata, $gid = '', $rid = '', $do_obj = '', $type = 0)
-    {
+    public function addevent_by_pfid($pfid, $event, $do, $eventdata, $gid = '', $rid = '', $do_obj = '', $type = 0) {
         if (!$pfid) return false;
         $eventArr = array(
             'rid' => $rid,
             'event_body' => $event,
             'uid' => getglobal('uid'),
-            'username' => getglobal('username'),
+            'username' => getglobal('username') ? getglobal('username') : getglobal('clientip'),
             'dateline' => time(),
             'body_data' => serialize($eventdata),
             'gid' => $gid,
@@ -39,20 +36,17 @@ class table_resources_event extends dzz_table
         }
     }
 
-    public function delete_by_gid($gid)
-    {
+    public function delete_by_gid($gid) {
         DB::delete($this->table, array('gid' => $gid));
     }
 
     //删除文件夹动态，仅限于文件夹，其下文件动态不删除
-    public function delete_by_pfid_and_notrid($fid)
-    {
+    public function delete_by_pfid_and_notrid($fid) {
         return DB::delete($this->_table, array('rid' => '', 'pfid' => $fid));
     }
 
     //删除动态
-    public function delete_by_rid($rid)
-    {
+    public function delete_by_rid($rid) {
         if (!is_array($rid)) $rid = (array)$rid;
         if (DB::delete($this->_table, 'rid in(' . dimplode($rid) . ')')) {
             return array('success' => lang('exploder_do_succeed'));
@@ -62,20 +56,19 @@ class table_resources_event extends dzz_table
     }
 
     //更改动态归属位置信息(移动文件时使用)
-    public function update_position_by_rid($rid, $pfid, $gid)
-    {
+    public function update_position_by_rid($rid, $pfid, $gid) {
         if (!is_array($rid)) $rid = (array)$rid;
         DB::update($this->_table, array('pfid' => $pfid, 'gid' => $gid), "rid IN(" . dimplode($rid) . ")");
         return true;
     }
 
-    public function fetch_event_by_gid($gid)
-    {
+    public function fetch_event_by_gid($gid) {
         $gid = intval($gid);
         $time = date('Y-m-d');
         $starttime = strtotime($time);
         $endtime = $starttime + 3600 * 24;
         $events = array();
+        include_once libfile('function/use');
         foreach (DB::fetch_all("select * from %t where gid = %d and dateline > %d and dateline < %d order by dateline desc", array($this->_table, $gid, $starttime, $endtime)) as $v) {
             $v['body_data'] = unserialize($v['body_data']);
             $v['body_data']['msg'] = self::emoji_decode($v['body_data']['msg']);
@@ -89,8 +82,7 @@ class table_resources_event extends dzz_table
         return $events;
     }
 
-    public function emoji_decode($str)
-    {
+    public function emoji_decode($str) {
         $text = json_encode($str); //暴露出unicode
         $text = preg_replace_callback('/\\\\\\\\/i', function ($str) {
             return '\\';
@@ -99,8 +91,7 @@ class table_resources_event extends dzz_table
     }
 
     //根据fid查询评论
-    public function fetch_comment_by_fid($fid, $count = false, $start = 0, $limit = 0)
-    {
+    public function fetch_comment_by_fid($fid, $count = false, $start = 0, $limit = 0) {
         $fid = intval($fid);
         $params = array($this->_table, $fid, 1);
         $limitsql = $limit ? DB::limit($start, $limit) : '';
@@ -108,6 +99,7 @@ class table_resources_event extends dzz_table
             return DB::result_first("select count(*) from %t where pfid = %d and rid = '' and `type`= %d", $params);
         }
         $events = array();
+        include_once libfile('function/use');
         foreach (DB::fetch_all("select * from %t where pfid = %d and rid = '' and `type`= %d order by dateline desc $limitsql", $params) as $v) {
             $v['body_data'] = unserialize($v['body_data']);
             $v['body_data']['msg'] = self::emoji_decode($v['body_data']['msg']);
@@ -128,8 +120,7 @@ class table_resources_event extends dzz_table
     }
 
     //根据fid查询评论
-    public function fetch_comment_by_rid($rid, $count = false, $start = 0, $limit = 0)
-    {
+    public function fetch_comment_by_rid($rid, $count = false, $start = 0, $limit = 0) {
         $rid = trim($rid);
         $params = array($this->_table, $rid, 1);
         $limitsql = $limit ? DB::limit($start, $limit) : '';
@@ -138,6 +129,7 @@ class table_resources_event extends dzz_table
         }
         $uid = array();
         $events = array();
+        include_once libfile('function/use');
         foreach (DB::fetch_all("select * from %t where rid = %s and `type`= %d order by dateline desc $limitsql", $params) as $v) {
             $v['body_data'] = unserialize($v['body_data']);
             $v['body_data']['msg'] = self::emoji_decode($v['body_data']['msg']);
@@ -157,8 +149,7 @@ class table_resources_event extends dzz_table
     }
 
     //根据rid查询动态
-    public function fetch_by_rid($rids, $start = 0, $limit = 0, $count = false, $type = false)
-    {
+    public function fetch_by_rid($rids, $start = 0, $limit = 0, $count = false, $type = false) {
         if (!is_array($rids)) $rids = (array)$rids;
         $fids = array();
         foreach (DB::fetch_all("select * from %t where rid in(%n)", array('resources', $rids)) as $v) {
@@ -166,22 +157,24 @@ class table_resources_event extends dzz_table
                 $fids[] = $v['oid'];
             }
         }
-        $wheresql = " where rid in(%n) ";
+        $wheresql = " where (rid in(%n)";
         $params = array($this->_table, $rids);
         if (count($fids) > 0) {
-            $wheresql .= " or (pfid in(%n))";
+            $wheresql .= " or pfid in(%n)";
             $params[] = $fids;
         }
+        $wheresql .= ")";
         if ($type) {
-            $type = $type - 1;
-            $wheresql .= ' and `type` = ' . $type;
+            $typeVal = $type - 1;
+            $wheresql .= " and `type` = %d";
+            $params[] = $typeVal;
         }
         if ($count) {
             return DB::result_first("select count(*) from %t $wheresql", $params);
         }
         $limitsql = $limit ? DB::limit($start, $limit) : '';
         $events = array();
-        $uids = array();
+        include_once libfile('function/use');
         foreach (DB::fetch_all("select * from %t $wheresql order by dateline desc $limitsql", $params) as $v) {
             $v['body_data'] = unserialize($v['body_data']);
             $v['body_data']['msg'] = self::emoji_decode($v['body_data']['msg']);
@@ -190,53 +183,36 @@ class table_resources_event extends dzz_table
             $v['do_lang'] = lang($v['do']);
             $v['details'] = lang($v['event_body'], $v['body_data']);
             $v['fdate'] = dgmdate($v['dateline'], 'u');
-            $uids[] = $v['uid'];
             $events[] = $v;
         }
-        $events = self::result_events_has_avatarstatusinfo($uids, $events);
-
         return $events;
     }
 
     //根据文件夹id查询动态
-    public function fetch_by_pfid_rid($fid, $counts = false, $start = 0, $limit = 0, $rid = '', $type = false)
-    {
+    public function fetch_by_pfid_rid($fid, $counts = false, $start = 0, $limit = 0, $rid = '', $type = false) {
         //查询文件夹所有下级
         $fids = C::t('resources_path')->get_child_fids($fid);
+        $conditions = [];
+        $params = [$this->_table, $fids];
+        $conditions[] = "pfid IN (%n)";
 
         if ($type) {
-            $type = $type - 1;
-            $wheresql = " where (pfid in(%n) and `type` = " . $type . ")";
-        } else {
-            $wheresql = " where (pfid in(%n) and `type` = 0)";
+            $typeValue = $type - 1;
+            $conditions[] = "`type` = " . $typeValue;
         }
-        $wheresql = " where (pfid in(%n) and `type` = 0)";
-        $params = array($this->_table, $fids);
 
         if ($rid) {
-            if ($type) {
-                $type = $type - 1;
-                $wheresql .= " or ((rid = %s and  `type` = 1) or `type` = 0)";
-            } else {
-                $wheresql .= " or ((rid = %s and  `type` = 1) or `type` = 0)";
-            }
-
+            $conditions[] = "rid = %s";
             $params[] = $rid;
-        } else {
-            if ($type) {
-                $type = $type - 1;
-                $wheresql .= " or ((rid = %s and  `type` = 1) or `type` = 0)";
-            } else {
-                $wheresql .= " or (pfid = %d and `type` = 1 and rid = '')";
-            }
-            $params[] = $fid;
         }
+
+        $wheresql = $conditions ? " WHERE " . implode(" AND ", $conditions) : "";
+
         if ($counts) {
             return DB::result_first("select count(*) from %t $wheresql", $params);
         }
         $limitsql = $limit ? DB::limit($start, $limit) : '';
         $events = array();
-        $uids = array();
         include_once libfile('function/use');
         foreach (DB::fetch_all("select * from %t $wheresql order by dateline desc $limitsql", $params) as $v) {
             $v['body_data'] = unserialize($v['body_data']);
@@ -246,15 +222,12 @@ class table_resources_event extends dzz_table
             $v['do_lang'] = lang($v['do']);
             $v['details'] = lang($v['event_body'], $v['body_data']);
             $v['fdate'] = dgmdate($v['dateline'], 'u');
-            $uids[] = $v['uid'];
             $events[] = $v;
         }
-        $events = self::result_events_has_avatarstatusinfo($uids, $events);
         return $events;
     }
 
-    public function result_events_has_avatarstatusinfo($uids, $events)
-    {
+    public function result_events_has_avatarstatusinfo($uids, $events) {
         $uids = array_unique($uids);
         $avatars = array();
         foreach (DB::fetch_all("select u.avatarstatus,u.uid,s.svalue from %t u left join %t s on u.uid=s.uid and s.skey=%s where u.uid in(%n)", array('user', 'user_setting', 'headerColor', $uids)) as $v) {
@@ -277,8 +250,7 @@ class table_resources_event extends dzz_table
     }
 
     //查询该文件最近的动态
-    public function fetch_by_ridlast($rid)
-    {
+    public function fetch_by_ridlast($rid) {
         $event = array();
         $result = DB::fetch_first("select * from %t where rid = %s and `type` = %d", array($this->_table, $rid, 0));
         $body_data = unserialize($result['body_data']);
@@ -291,8 +263,7 @@ class table_resources_event extends dzz_table
     }
 
     //查询当前用户所有动态
-    public function fetch_all_event($start = 0, $limit = 0, $condition = array(), $ordersql = '', $count = false)
-    {
+    public function fetch_all_event($start = 0, $limit = 0, $condition = array(), $ordersql = '', $count = false) {
         $limitsql = $limit ? DB::limit($start, $limit) : '';
         $wheresql = ' 1 ';
         $uid = getglobal('uid');
@@ -365,12 +336,14 @@ class table_resources_event extends dzz_table
             foreach ($condition as $k => $v) {
                 if (!is_array($v)) {
                     $connect = 'and';
-                    $wheresql .= $connect . ' e.' . $k . " = '" . $v . "' ";
+                    $wheresql .= $connect . ' e.' . $k . " = %s ";
+                    $params[] = $v;
                 } else {
                     $relative = isset($v[1]) ? $v[1] : '=';
                     $connect = isset($v[2]) ? $v[2] : 'and';
                     if ($relative == 'in') {
-                        $wheresql .= $connect . "  e." . $k . " " . $relative . " (" . $v[0] . ") ";
+                        $wheresql .= $connect . "  e." . $k . " in (%n) ";
+                        $params[] = $v[0];
                     } elseif ($relative == 'nowhere') {
                         continue;
                     } elseif ($relative == 'stringsql') {
@@ -379,7 +352,8 @@ class table_resources_event extends dzz_table
                         $wheresql .= $connect . " e." . $k . " like %s ";
                         $params[] = '%' . $v[0] . '%';
                     } else {
-                        $wheresql .= $connect . ' e.' . $k . ' ' . $relative . ' ' . $v[0] . ' ';
+                        $wheresql .= $connect . ' e.' . $k . ' = %s ';
+                        $params[] = $v[0];
                     }
 
                 }
@@ -388,7 +362,6 @@ class table_resources_event extends dzz_table
         if ($count) {
             return DB::result_first("select count(*) from %t e left join %t f on e.pfid = f.fid where  $wheresql  $ordersql", $params);
         }
-        $uids = array();
         $events = array();
         foreach (DB::fetch_all("select e.* from %t e left join %t f on e.pfid = f.fid where  $wheresql  $ordersql  $limitsql", $params) as $v) {
             $v['body_data'] = unserialize($v['body_data']);
@@ -396,17 +369,14 @@ class table_resources_event extends dzz_table
             $v['do_lang'] = lang($v['do']);
             $v['details'] = lang($v['event_body'], $v['body_data']);
             $v['fdate'] = dgmdate($v['dateline'], 'u');
-            $uids[] = $v['uid'];
             $events[] = $v;
         }
-        $events = self::result_events_has_avatarstatusinfo($uids, $events);
         return $events;
 
     }
 
     //删除评论
-    public function delete_comment_by_id($id)
-    {
+    public function delete_comment_by_id($id) {
         $id = intval($id);
         $uid = getglobal('uid');
         if (!$comment = parent::fetch($id)) {
@@ -415,8 +385,8 @@ class table_resources_event extends dzz_table
         //检测删除权限
         $pfid = $comment['pfid'];
         if ($folder = C::t('folder')->fetch($pfid)) {
-            if(($uid != $comment['uid']) && !perm_check::checkperm_Container($folder['fid'], 'delete2') && !($uid == $folder['uid'] && perm_check::checkperm_Container($folder['fid'], 'delete1'))) {
-                return array('error' => lang('no_privilege'));
+            if (($uid != $comment['uid']) && !perm_check::checkperm_Container($folder['fid'], 'delete', '', $folder['uid'])) {
+                return array('error' => lang('file_delete_no_privilege'));
             }
         }
         if (parent::delete($id)) {
@@ -433,8 +403,7 @@ class table_resources_event extends dzz_table
      * #home&fid=1
      * #home&do=file&fid=11
      * */
-    public function get_showtpl_hash_by_gpfid($pfid, $gid = 0)
-    {
+    public function get_showtpl_hash_by_gpfid($pfid, $gid = 0) {
         $hash = '';
         //判断是否是群组内操作
         if ($gid > 0) {
@@ -461,8 +430,7 @@ class table_resources_event extends dzz_table
         return $hash;
     }
 
-    public function update_event_by_pfid($pfid, $opfid)
-    {
+    public function update_event_by_pfid($pfid, $opfid) {
         DB::update($this->_table, array('pfid' => $opfid), array('pfid' => $opfid));
     }
 

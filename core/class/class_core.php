@@ -63,6 +63,7 @@ class core
 				self::import('class'.'/'.$type.'/'.$name,$folder);
 			}
 			if($extendable) {
+				
 				self::$_tables[$cname] = new dzz_container();
 				switch (count($p)) {
 					case 0:	self::$_tables[$cname]->obj = new $cname();break;
@@ -104,7 +105,10 @@ class core
 	}
 
 	public static function import($name, $folder = '', $force = true) {
-		
+		//如果文件名为空或者false，阻止向下进行
+	    if(preg_match('/^\s*$/',$name) || $name == false){
+	        return false;
+        }
 		$key = $folder.$name;
 		if(!isset(self::$_imports[$key])) {
 			if($folder){
@@ -116,6 +120,7 @@ class core
 					if(defined('CURMODULE')) $path2=DZZ_ROOT.'/'.CURSCRIPT.'/'.CURMODULE.'/';
 				}
 			}
+			
 		
 			if(strpos($name, '/') !== false) {
 				$pre = basename(dirname($name));
@@ -167,7 +172,6 @@ class core
 		if($class[0] === '#') {
 			list(, $module, $class) = explode('#', $class);
 		}
-		$class = ($class);
         $namespaceArr = explode('\\',$class);
         $namesapce = $namespaceArr[0].'\\';
         if(array_key_exists($namesapce,self::$prefixDirsPsr4)){

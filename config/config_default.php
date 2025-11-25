@@ -7,6 +7,7 @@ $_config = array();
 /**
  * 数据库主服务器设置, 支持多组服务器设置, 当设置多组服务器时, 则会根据分布式策略使用某个服务器
  * @example
+ * $_config['db']['driver'] = '';// 空(默认)/mysqli/pdo
  * $_config['db']['1']['dbhost'] = 'localhost'; // 服务器地址
  * $_config['db']['1']['dbuser'] = 'root'; // 用户
  * $_config['db']['1']['dbpw'] = '';// 密码
@@ -14,6 +15,7 @@ $_config = array();
  * $_config['db']['1']['pconnect'] = '0';// 是否持续连接
  * $_config['db']['1']['dbname'] = 'x1';// 数据库
  * $_config['db']['1']['tablepre'] = 'pre_';// 表名前缀
+ * $_config['db']['1']['dsn'] = 'mysql:host=localhost;dbname=x1';// DSN配置（PDO）
  *
  * $_config['db']['2']['dbhost'] = 'localhost';
  * ...
@@ -21,11 +23,10 @@ $_config = array();
 $_config['db'][1]['dbhost']  		= 'localhost';//支持三种直接加端口如：127.0.0.1:3306或使用UNix socket 如：/tmp/mysql.sock
 $_config['db'][1]['dbuser']  		= 'root';
 $_config['db'][1]['dbpw'] 	 		= 'root';
-$_config['db'][1]['dbcharset'] 		= 'utf8';
+$_config['db'][1]['dbcharset'] 		= 'utf8mb4';
 $_config['db'][1]['pconnect'] 		= 0;
 $_config['db'][1]['dbname']  		= 'dzzoffice';
 $_config['db'][1]['tablepre'] 		= 'dzz_';
-$_config['db'][1]['port'] = '3306';//mysql端口
 $_config['db'][1]['unix_socket'] = '';//使用此方式连接时 dbhost设置为localhost
 
 /**
@@ -45,7 +46,8 @@ $_config['db'][1]['unix_socket'] = '';//使用此方式连接时 dbhost设置为
  *
  */
 $_config['db']['1']['slave'] = array();
-
+//数据库驱动
+$_config['db']['driver'] = 'mysqli';
 //启用从服务器的开关
 $_config['db']['slave'] = false;
 /**
@@ -74,7 +76,11 @@ $_config['db']['common'] = array();
  */
 $_config['db']['common']['slave_except_table'] = '';
 
-
+/*
+ * 数据库引擎，根据自己的数据库引擎进行设置，V2.4.0之后默认为innodb，之前为myisam
+ * 对于从低版本升级到V2.4.0及以上，并且没有转换数据库引擎的用户，在此设置为myisam
+ */
+$_config['db']['common']['engine'] = 'innodb';
 
 /**
  * 内存服务器优化设置
@@ -85,12 +91,13 @@ $_config['db']['common']['slave_except_table'] = '';
 //内存变量前缀, 可更改,避免同服务器中的程序引用错乱
 $_config['memory']['prefix'] = 'dzzoffice_';
 
-/* reids设置, 需要PHP扩展组件支持, timeout参数的作用没有查证 */
+/* Redis设置, 需要PHP扩展组件支持, timeout参数的作用没有查证 */
 $_config['memory']['redis']['server'] = '';
 $_config['memory']['redis']['port'] = 6379;
 $_config['memory']['redis']['pconnect'] = 1;
 $_config['memory']['redis']['timeout'] = 0;
 $_config['memory']['redis']['requirepass'] = '';//如果redis需要密码，请填写redis密码
+$_config['memory']['redis']['db'] = 0;//这里可以填写0到15的数字，每个站点使用不同的db
 /**
  * 是否使用 Redis::SERIALIZER_IGBINARY选项,需要igbinary支持,windows下测试时请关闭，否则会出>现错误Reading from client: Connection reset by peer
  * 支持以下选项，默认使用PHP的serializer
@@ -98,28 +105,36 @@ $_config['memory']['redis']['requirepass'] = '';//如果redis需要密码，请�
  * Redis::SERIALIZER_PHP =1
  * Redis::SERIALIZER_NONE =0 //则不使用serialize,即无法保存array
  */
-$_config['memory']['redis']['serializer'] = 1;
+/**
+ * 此配置现在已经取消，默认对array使用php serializer进行编码保存，其它数据直接原样保存 
+ */
+//$_config['memory']['redis']['serializer'] = 1;
 
-$_config['memory']['memcache']['server'] = '127.0.0.1'; // memcache 服务器地址
+$_config['memory']['memcache']['server'] = ''; // memcache 服务器地址
 $_config['memory']['memcache']['port'] = 11211;			// memcache 服务器端口
 $_config['memory']['memcache']['pconnect'] = 1;			// memcache 是否长久连接
 $_config['memory']['memcache']['timeout'] = 1;			// memcache 服务器连接超时
 
-$_config['memory']['memcached']['server'] = '127.0.0.1'; // memcached 服务器地址
+$_config['memory']['memcached']['server'] = ''; // memcached 服务器地址
 $_config['memory']['memcached']['port'] = 11211;		// memcached 服务器端口
 $_config['memory']['memcached']['pconnect'] = 1;		// memcached 是否长久连接
 $_config['memory']['memcached']['timeout'] = 1;			// memcached 服务器连接超时
 
-$_config['memory']['apc'] = 1;							// 启动对 apc 的支持
-$_config['memory']['xcache'] = 1;						// 启动对 xcache 的支持
+$_config['memory']['apc'] = 0;							// 启动对 APC 的支持
+$_config['memory']['apcu'] = 0;							// 启动对 APCu 的支持
+$_config['memory']['xcache'] = 0;						// 启动对 xcache 的支持
 $_config['memory']['eaccelerator'] = 0;					// 启动对 eaccelerator 的支持
-$_config['memory']['wincache'] = 1;						// 启动对 wincache 的支持
+$_config['memory']['wincache'] = 0;						// 启动对 wincache 的支持
+$_config['memory']['yac'] = 0;     						//启动对 YAC 的支持
+$_config['memory']['file']['server'] = '';				// File 缓存存放目录，如设置为 data/cache/filecache ，设置后启动 File 缓存
 
 
 // 服务器相关设置
 $_config['server']['id']		= 1;			// 服务器编号，多webserver的时候，用于标识当前服务器的ID
 
-
+//计划任务设置
+$_config['remote']['on']=0; //1：设定计划任务由外部触发；0：通过用户访问触发
+$_config['remote']['cron']=0; //1：设定计划任务由外部触发；0：通过用户访问触发
 //  CONFIG CACHE
 $_config['cache']['type'] 			= 'sql';	// 缓存类型 file=文件缓存, sql=数据库缓存
 
@@ -132,6 +147,7 @@ $_config['output']['tplrefresh'] 		= 1;		// 模板自动刷新开关 0=关闭, 1
 
 $_config['output']['language'] 			= 'zh-cn';	// 页面语言 zh-cn/zh-tw
 $_config['output']['language_list']['zh-cn']='简体中文';	// 页面语言 zh-CN/en-US
+$_config['output']['language_list']['en-us']='English';
 
 $_config['output']['staticurl'] 		= 'static/';	// 站点静态文件路径，“/”结尾
 $_config['output']['ajaxvalidate']		= 0;		// 是否严格验证 Ajax 页面的真实性 0=关闭，1=打开
@@ -160,6 +176,8 @@ $_config['admincp']['checkip']			= 1;		// 后台管理操作是否验证管理�
 $_config['admincp']['runquery']			= 0;		// 是否允许后台运行 SQL 语句 1=是 0=否[安全]
 $_config['admincp']['dbimport']			= 0;		// 是否允许后台恢复网站数据  1=是 0=否[安全]
 $_config['userlogin']['checkip']		= 1; 		//用户登录错误验证ip，对于同一ip同时使用时建议设置为0,否则当有一位用户登录错误次数超过5次，该ip被锁定15分钟，导致其他的同IP用户无法登录;
+$_config['debug'] = 0; //调试模式 2：全部错误都显示，1：只显示致命的错误，0：关闭调试。打开后可以在页面底部显示程序运行时间和内存开销等信息
+$_config['sqllog'] = 0; //sql日志， // 1: 仅记录SQL, 2: 记录SQL和调用栈。在系统日志中查看
 
 //$_config['system_os']	= 'linux';		//windows,linux,mac,系统会自动判断
 //$_config['system_charset']='utf-8';	//操作系统编码，不设置系统将根据操作系统类型来判断linux:utf-8;windows:gbk;

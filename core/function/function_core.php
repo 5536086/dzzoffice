@@ -2,10 +2,8 @@
 if (!defined('IN_DZZ')) {
     exit('Access Denied');
 }
-
 if (!function_exists('sys_get_temp_dir')) {
-    function sys_get_temp_dir()
-    {
+    function sys_get_temp_dir() {
         if (!empty($_ENV['TMP'])) {
             return realpath($_ENV['TMP']);
         }
@@ -24,8 +22,7 @@ if (!function_exists('sys_get_temp_dir')) {
     }
 }
 
-function getfileinfo($icoid)
-{
+function getfileinfo($icoid, $sid = false) {
     if (preg_match('/^dzz:[gu]id_\d+:.+?/i', $icoid)) {
         $dir = dirname($icoid) . '/';
 
@@ -36,21 +33,20 @@ function getfileinfo($icoid)
         if (!$rid = DB::result_first("select rid from %t where pfid = %d and name = %s", array('resources', $pfid, $filename))) {
             return false;
         }
-        return C::t('resources')->fetch_by_rid($rid);
+        return C::t('resources')->fetch_by_rid($rid, '', false, $sid);
     } elseif (preg_match('/\w{32}/i', $icoid)) {
-        return C::t('resources')->fetch_by_rid($icoid);
+        return C::t('resources')->fetch_by_rid($icoid, '', false, $sid);
     }
 }
 
-function dzzMD5($file, $maxchunk = 100, $chunksize_first = 256)
-{
+function dzzMD5($file, $maxchunk = 100, $chunksize_first = 256) {
     /*
-  获取文件的dzzhash值
-  $file:文件地址,仅支持本地文件地址；
-  $maxchunk:获取多少块数据
-  $chunksize_first:每块取多少字节计算md5;
-  return:第一块md5和所有块的md5;
-*/
+    获取文件的dzzhash值
+    $file:文件地址,仅支持本地文件地址；
+    $maxchunk:获取多少块数据
+    $chunksize_first:每块取多少字节计算md5;
+    return:第一块md5和所有块的md5;
+    */
     if (!is_file($file)) return false;
     $filesize = filesize($file);
     $chunk = round($filesize / $maxchunk);
@@ -69,8 +65,7 @@ function dzzMD5($file, $maxchunk = 100, $chunksize_first = 256)
     return array($arr[0], md5(implode('', $arr)));
 }
 
-function getCode62($url)
-{//获取url的code62码
+function getCode62($url) {//获取url的code62码
     $url = crc32($url);
     $x = sprintf("%u", $url);
     $show = '';
@@ -87,27 +82,20 @@ function getCode62($url)
     return $show;
 }
 
-function hookscriptoutput()
-{
-}
-
 define('DZZ_CORE_FUNCTION', true);
-function getOauthRedirect($url)
-{//获取链接的auth地址
+function getOauthRedirect($url) {//获取链接的auth地址
     $wx = new qyWechat(array('appid' => getglobal('setting/CorpID'), 'appsecret' => getglobal('setting/CorpSecret')));
     return $wx->getOauthRedirect(getglobal('siteurl') . 'index.php?mod=system&op=wxredirect&url=' . dzzencode($url));
 }
- 
-function fix_integer_overflow($size)
-{ //处理整数溢出
+
+function fix_integer_overflow($size) { //处理整数溢出
     if ($size < 0) {
         $size += 2.0 * (PHP_INT_MAX + 1);
     }
     return $size;
 }
 
-function formatsize($size)
-{
+function formatsize($size) {
     $prec = 3;
     $size = round(abs($size));
     $units = array(0 => " B ", 1 => " KB", 2 => " MB", 3 => " GB", 4 => " TB");
@@ -120,19 +108,21 @@ function formatsize($size)
     return $size . $units[$unit];
 }
 
-function url_implode($gets)
-{
+function url_implode($gets) {
     $arr = array();
     foreach ($gets as $key => $value) {
-        if ($value) {
+        if (is_array($value)) {
+            foreach ($value as $value1) {
+                $arr[] = $key . '[]=' . urlencode($value1);
+            }
+        } elseif ($value) {
             $arr[] = $key . '=' . urlencode($value);
         }
     }
     return implode('&', $arr);
 }
 
-function getstr($string, $length = 0, $in_slashes = 0, $out_slashes = 0, $bbcode = 0, $html = 0)
-{
+function getstr($string, $length = 0, $in_slashes = 0, $out_slashes = 0, $bbcode = 0, $html = 0) {
     global $_G;
 
     $string = trim($string);
@@ -165,8 +155,7 @@ function getstr($string, $length = 0, $in_slashes = 0, $out_slashes = 0, $bbcode
     return trim($string);
 }
 
-function getuserprofile($field)
-{
+function getuserprofile($field) {
     global $_G;
     if (isset($_G['member'][$field])) {
         return $_G['member'][$field];
@@ -196,8 +185,7 @@ function getuserprofile($field)
     return null;
 }
 
-function cpurl($type = 'parameter', $filters = array('sid', 'frames'))
-{
+function cpurl($type = 'parameter', $filters = array('sid', 'frames')) {
     parse_str($_SERVER['QUERY_STRING'], $getarray);
     $extra = $and = '';
     foreach ($getarray as $key => $value) {
@@ -209,26 +197,21 @@ function cpurl($type = 'parameter', $filters = array('sid', 'frames'))
     return $extra;
 }
 
-function stripsearchkey($string)
-{
+function stripsearchkey($string) {
     $string = trim($string);
     $string = str_replace('*', '%', addcslashes($string, '%_'));
     return $string;
 }
 
-
-function system_error($message, $show = true, $save = true, $halt = true)
-{
+function system_error($message, $show = true, $save = true, $halt = true) {
     dzz_error::system_error($message, $show, $save, $halt);
 }
 
-function updatesession()
-{
+function updatesession() {
     return C::app()->session->updatesession();
 }
 
-function setglobal($key, $value, $group = null)
-{
+function setglobal($key, $value, $group = null) {
     global $_G;
     if (is_null($group) && C::setConfig($key, $value)) {
         return true;
@@ -245,8 +228,7 @@ function setglobal($key, $value, $group = null)
     return true;
 }
 
-function getglobal($key, $group = null)
-{
+function getglobal($key, $group = null) {
     global $_G;
     if (isset($_config[$key])) {
         return $_config[$key];
@@ -262,8 +244,7 @@ function getglobal($key, $group = null)
     return $v;
 }
 
-function getgpc($k, $type = 'GP')
-{
+function getgpc($k, $type = 'GP') {
     $type = strtoupper($type);
     switch ($type) {
         case 'G':
@@ -288,8 +269,7 @@ function getgpc($k, $type = 'GP')
 
 }
 
-function getuserbyuid($uid, $fetch_archive = 0)
-{
+function getuserbyuid($uid, $fetch_archive = 0) {
     static $users = array();
     if (empty($users[$uid])) {
         $users[$uid] = C::t('user')->fetch($uid);
@@ -301,17 +281,16 @@ function getuserbyuid($uid, $fetch_archive = 0)
     return $users[$uid];
 }
 
-function chk_submitroule($type)
-{
+function chk_submitroule($type) {
+    if ($_SERVER['REQUEST_METHOD'] == 'POST' && !empty($_GET['formhash']) && $_GET['formhash'] == formhash() && empty($_SERVER['HTTP_X_FLASH_VERSION']) && (empty($_SERVER['HTTP_REFERER']) ||
+            preg_replace("/https?:\/\/([^\:\/]+).*/i", "\\1", $_SERVER['HTTP_REFERER']) == preg_replace("/([^\:]+).*/", "\\1", $_SERVER['HTTP_HOST']))) {
 
-    if (empty($_GET['formhash']) || $_GET['formhash'] != formhash()) {
-
+    } else {
         showTips(array('error' => '提交方式不合法', 'error_code' => 403), $type, 'common/illegal_operation');
     }
 }
 
-function daddslashes($string, $force = 1)
-{
+function daddslashes($string, $force = 1) {
     if (is_array($string)) {
         $keys = array_keys($string);
         foreach ($keys as $key) {
@@ -325,8 +304,10 @@ function daddslashes($string, $force = 1)
     return $string;
 }
 
-function authcode($string, $operation = 'DECODE', $key = '', $expiry = 0, $ckey_length = 4)
-{
+function authcode($string = '', $operation = 'DECODE', $key = '', $expiry = 0, $ckey_length = 4) {
+    if (!$string) {
+        return '';
+    }
     //$ckey_length = 4;
     $key = md5($key != '' ? $key : getglobal('authkey'));
     $keya = md5(substr($key, 0, 16));
@@ -364,7 +345,7 @@ function authcode($string, $operation = 'DECODE', $key = '', $expiry = 0, $ckey_
     }
 
     if ($operation == 'DECODE') {
-        if ((substr($result, 0, 10) == 0 || substr($result, 0, 10) - time() > 0) && substr($result, 10, 16) == substr(md5(substr($result, 26) . $keyb), 0, 16)) {
+        if (((int)substr($result, 0, 10) == 0 || (int)substr($result, 0, 10) - time() > 0) && substr($result, 10, 16) === substr(md5(substr($result, 26) . $keyb), 0, 16)) {
             return substr($result, 26);
         } else {
             return '';
@@ -373,48 +354,91 @@ function authcode($string, $operation = 'DECODE', $key = '', $expiry = 0, $ckey_
         return $keyc . str_replace(array('/', '+'), array('_', '-'), str_replace('=', '', base64_encode($result)));
     }
 }
+
 function urlsafe_b64encode($string) {
     $data = base64_encode($string);
-    $data = str_replace(array('+','/','='),array('-','_',''),$data);
+    $data = str_replace(array('+', '/', '='), array('-', '_', ''), $data);
     return $data;
 }
 
 function urlsafe_b64decode($string) {
-    $data = str_replace(array('-','_'),array('+','/'),$string);
+    $data = str_replace(array('-', '_'), array('+', '/'), $string);
     $mod4 = strlen($data) % 4;
     if ($mod4) {
         $data .= substr('====', $mod4);
     }
     return base64_decode($data);
 }
-//key的格式以|隔开，参数支持全局函数，如地址为 index.php?mod=io&op=getStream&path=***&key=uid|setting/authkey|username
-//这种格式，加密时，需要把|分割的每个参数都带上，dzzencode($string,'1|'.getglobal('setting/authkey').'|管理员',$expiry);
-//如果解密时，|隔开的部分使用getglobal函数获取不到值，将会使用原值，如index.php?mod=io&op=getStream&path=***&key=xxxxx|ppppp
-//解密时的key会使用原值 xxxxx|ppppp ;
-function dzzencode($string, $key = '', $expiry = 0, $ckey_length = 0)
-{
+
+/**
+ * 字符串加密函数
+ * 
+ * @param string $string 要加密的原始字符串
+ * @param string $key 加密密钥（可选），两种形式：
+ *                   - 空值：使用系统默认密钥（setting/authkey）
+ *                   - 非空：格式为用|分隔的字符串，支持动态变量：
+ *                     - 格式示例：'uid|setting/authkey|username'
+ *                     - 加密时需要将|分割的每个参数替换为实际值：
+ *                       `'1|'.getglobal('setting/authkey').'|管理员'`
+ *                     - 示例URL参数：
+ *                       index.php?mod=io&op=getStream&path=***&key=uid|setting/authkey|username
+ * @param int $expiry 有效期（秒，可选），0表示永久有效
+ * @param int $ckey_length 动态密钥长度（可选）
+ * @return string 返回URL安全的Base64编码加密字符串
+ * 
+ * @example 
+ * // 基础用法（使用系统默认密钥）
+ * dzzencode('raw_string');
+ * 
+ * // 带自定义密钥
+ * dzzencode('raw_string', 'uid|setting/authkey');
+ * 
+ * // 带有效期
+ * dzzencode('raw_string', '', 3600); // 1小时内有效
+ * 
+ * // 密钥动态解析过程：
+ * // 1. 分割：explode('|', 'uid|setting/authkey') → ['uid', 'setting/authkey']
+ * // 2. 替换：通过getglobal()获取实际值 → ['1', 'secret_key']
+ * // 3. 合并：implode → '1|secret_key'
+ * // 4. 最终密钥：md5('1|secret_key')
+ */
+function dzzencode($string, $key = '', $expiry = 0, $ckey_length = 0) {
     $key = md5($key != '' ? $key : getglobal('setting/authkey'));
     return urlsafe_b64encode(authcode($string, 'ENCODE', $key, $expiry, $ckey_length));
 }
 
-function dzzdecode($string, $key = '', $ckey_length = 0)
-{
+/**
+ * 字符串解密函数
+ * 
+ * @param string $string 要解密的字符串
+ * @param string $key 解密密钥（可选），处理逻辑同dzzencode()
+ * @param int $ckey_length 动态密钥长度（可选）
+ * @return string 返回原始字符串
+ * 
+ * @example
+ * // 基础用法（使用加密时的默认密钥）
+ * dzzdecode($encryptedString);
+ * 
+ * // 带自定义密钥解密
+ * dzzdecode($encryptedString, 'uid|setting/authkey');
+ */
+function dzzdecode($string, $key = '', $ckey_length = 0) {
     if ($key) {
         $tarr = explode('|', $key);
-        foreach ($tarr as $key => $v) {
-            if (getglobal($v)) $tarr[$key] = getglobal($v);
+        foreach ($tarr as $idx => $val) {
+            if ($gval = getglobal($val)) $tarr[$idx] = $gval;
         }
         $key = implode('|', $tarr);
     }
-    $key = md5($key != '' ? $key : getglobal('setting/authkey'));
-    if (!$ret = authcode(urlsafe_b64decode($string), 'DECODE', $key, 0, $ckey_length)) {
-        $ret = authcode(urlsafe_b64decode($string), 'DECODE', $key, 0, 4);
+    $authkey = md5($key ?: getglobal('setting/authkey'));
+    $decoded = urlsafe_b64decode($string);
+    if (!($str = authcode($decoded, 'DECODE', $authkey, 0, $ckey_length))) {
+        $str = authcode($decoded, 'DECODE', $authkey, 0, 4);
     }
-    return $ret;
+    return $str;
 }
 
-function fsocketopen($hostname, $port = 80, &$errno, &$errstr, $timeout = 15)
-{
+function fsocketopen($hostname, $port = 80, &$errno, &$errstr, $timeout = 15) {
     $fp = '';
     if (function_exists('fsockopen')) {
         $fp = @fsockopen($hostname, $port, $errno, $errstr, $timeout);
@@ -426,13 +450,12 @@ function fsocketopen($hostname, $port = 80, &$errno, &$errstr, $timeout = 15)
     return $fp;
 }
 
-function dfsockopen($url, $limit = 0, $post = '', $cookie = '', $bysocket = FALSE, $ip = '', $timeout = 15, $block = TRUE, $encodetype  = 'URLENCODE', $allowcurl = TRUE, $position = 0, $files = array()) {
-	require_once libfile('function/filesock');
-	return _dfsockopen($url, $limit, $post, $cookie, $bysocket, $ip, $timeout, $block, $encodetype, $allowcurl, $position, $files);
+function dfsockopen($url, $limit = 0, $post = '', $cookie = '', $bysocket = FALSE, $ip = '', $timeout = 15, $block = TRUE, $encodetype = 'URLENCODE', $allowcurl = TRUE, $position = 0, $files = array()) {
+    require_once libfile('function/filesock');
+    return _dfsockopen($url, $limit, $post, $cookie, $bysocket, $ip, $timeout, $block, $encodetype, $allowcurl, $position, $files);
 }
 
-function dhtmlspecialchars($string, $flags = null)
-{
+function dhtmlspecialchars($string, $flags = null) {
     if (is_array($string)) {
         foreach ($string as $key => $val) {
             $string[$key] = dhtmlspecialchars($val, $flags);
@@ -444,30 +467,24 @@ function dhtmlspecialchars($string, $flags = null)
                 $string = preg_replace('/&amp;((#(\d{3,5}|x[a-fA-F0-9]{4}));)/', '&\\1', $string);
             }
         } else {
-            if (PHP_VERSION < '5.4.0') {
-                $string = htmlspecialchars($string, $flags);
+            if (strtolower(CHARSET) == 'utf-8') {
+                $charset = 'UTF-8';
             } else {
-                if (strtolower(CHARSET) == 'utf-8') {
-                    $charset = 'UTF-8';
-                } else {
-                    $charset = 'ISO-8859-1';
-                }
-                $string = htmlspecialchars($string, $flags, $charset);
+                $charset = 'ISO-8859-1';
             }
+            $string = htmlspecialchars($string, $flags, $charset);
         }
     }
     return $string;
 }
 
-function dexit($message = '')
-{
+function dexit($message = '') {
     echo $message;
     output();
     exit();
 }
 
-function dheader($string, $replace = true, $http_response_code = 0)
-{
+function dheader($string, $replace = true, $http_response_code = 0) {
     $islocation = substr(strtolower(trim($string)), 0, 8) == 'location';
     if (defined('IN_MOBILE') && strpos($string, 'mobile') === false && $islocation) {
         if (strpos($string, '?') === false) {
@@ -483,7 +500,7 @@ function dheader($string, $replace = true, $http_response_code = 0)
         }
     }
     $string = str_replace(array("\r", "\n"), array('', ''), $string);
-    if (empty($http_response_code) || PHP_VERSION < '4.3') {
+    if (empty($http_response_code)) {
         @header($string, $replace);
     } else {
         @header($string, $replace, $http_response_code);
@@ -493,8 +510,7 @@ function dheader($string, $replace = true, $http_response_code = 0)
     }
 }
 
-function dsetcookie($var, $value = '', $life = 0, $prefix = 1, $httponly = false)
-{
+function dsetcookie($var, $value = '', $life = 0, $prefix = 1, $httponly = false) {
 
     global $_G;
 
@@ -514,36 +530,27 @@ function dsetcookie($var, $value = '', $life = 0, $prefix = 1, $httponly = false
     }
 
     $life = $life > 0 ? getglobal('timestamp') + $life : ($life < 0 ? getglobal('timestamp') - 31536000 : 0);
-    $path = $httponly && PHP_VERSION < '5.2.0' ? $config['cookiepath'] . '; HttpOnly' : $config['cookiepath'];
 
-    $secure = $_SERVER['SERVER_PORT'] == 443 ? 1 : 0;
-    if (PHP_VERSION < '5.2.0') {
-        setcookie($var, $value, $life, $path, $config['cookiedomain'], $secure);
-    } else {
-        setcookie($var, $value, $life, $path, $config['cookiedomain'], $secure, $httponly);
-    }
+    $secure = $_G['isHTTPS'];
+    setcookie($var, $value, $life, $config['cookiepath'], $config['cookiedomain'], $secure, $httponly);
 }
 
-function getcookie($key)
-{
+function getcookie($key) {
     global $_G;
     return isset($_G['cookie'][$key]) ? $_G['cookie'][$key] : '';
 }
 
-function fileext($filename)
-{
+function fileext($filename) {
     return addslashes(strtolower(substr(strrchr($filename, '.'), 1, 10)));
 }
 
-function formhash($specialadd = '')
-{
+function formhash($specialadd = '') {
     global $_G;
     $hashadd = defined('IN_ADMINCP') ? 'Only For Dzz! Admin Control Panel' : '';
     return substr(md5(substr($_G['timestamp'], 0, -7) . $_G['username'] . $_G['uid'] . $_G['authkey'] . $hashadd . $specialadd), 8, 8);
 }
 
-function checkrobot($useragent = '')
-{
+function checkrobot($useragent = '') {
     static $kw_spiders = array('bot', 'crawl', 'spider', 'slurp', 'sohu-search', 'lycos', 'robozilla');
     static $kw_browsers = array('msie', 'netscape', 'opera', 'konqueror', 'mozilla');
 
@@ -553,8 +560,7 @@ function checkrobot($useragent = '')
     return false;
 }
 
-function checkmobile()
-{
+function checkmobile() {
     global $_G;
     $mobile = array();
     static $mobilebrowser_list = array('iphone', 'android', 'phone', 'mobile', 'wap', 'netfront', 'java', 'opera mobi', 'opera mini',
@@ -594,8 +600,7 @@ function checkmobile()
     }
 }
 
-function dstrpos($string, $arr, $returnvalue = false)
-{
+function dstrpos($string, $arr, $returnvalue = false) {
     if (empty($string)) return false;
     foreach ((array)$arr as $v) {
         if (strpos($string, $v) !== false) {
@@ -606,18 +611,19 @@ function dstrpos($string, $arr, $returnvalue = false)
     return false;
 }
 
-function isemail($email)
-{
-    return strlen($email) > 6 && strlen($email) <= 32 && preg_match("/^([A-Za-z0-9\-_.+]+)@([A-Za-z0-9\-]+[.][A-Za-z0-9\-.]+)$/", $email);
+function isemail($email) {
+    return strlen($email) > 6 && strlen($email) <= 40 && preg_match("/^([A-Za-z0-9\-_.+]+)@([A-Za-z0-9\-]+[.][A-Za-z0-9\-.]+)$/", $email);
 }
 
-function quescrypt($questionid, $answer)
-{
+function isphone($phone) {
+    return preg_match('/^(\d{1,12}|\d{1,3}-\d{1,12})$/', $phone);
+}
+
+function quescrypt($questionid, $answer) {
     return $questionid > 0 && $answer != '' ? substr(md5($answer . md5($questionid)), 16, 8) : '';
 }
 
-function random($length, $numeric = 0)
-{
+function random($length, $numeric = 0) {
     $seed = base_convert(md5(microtime() . $_SERVER['DOCUMENT_ROOT']), 16, $numeric ? 10 : 35);
     $seed = $numeric ? (str_replace('0', '', $seed) . '012340567890') : ($seed . 'zZ' . strtoupper($seed));
     if ($numeric) {
@@ -628,18 +634,16 @@ function random($length, $numeric = 0)
     }
     $max = strlen($seed) - 1;
     for ($i = 0; $i < $length; $i++) {
-        $hash .= $seed{mt_rand(0, $max)};
+        $hash .= $seed[random_int(0, $max)];
     }
     return $hash;
 }
 
-function strexists($string, $find)
-{
+function strexists($string, $find) {
     return !(strpos($string, $find) === FALSE);
 }
 
-function avatar($uid, $size = 'middle', $returnsrc = FALSE, $real = FALSE, $static = FALSE, $ucenterurl = '')
-{
+function avatar($uid, $size = 'middle', $returnsrc = FALSE, $real = FALSE, $static = FALSE, $ucenterurl = '') {
     global $_G;
 
     static $staticavatar;
@@ -661,125 +665,109 @@ function avatar($uid, $size = 'middle', $returnsrc = FALSE, $real = FALSE, $stat
     }
 }
 
-/*获取用户头像模板，如果没有会生成背景+首字母的头像
- * param:$uid    		需要生成的用户UID;
- * param:$headercolors  传递的用户头像信息数组格式为array('1'=>'#e9308d','2'=>'#e74856'),键为UID，值为颜色值
+/**
+ * 获取用户头像模板，如果没有会生成背景+首字母的头像
+ * @param int $uid 需要生成的用户UID
+ * @param array $headercolors 用户头像颜色信息数组，格式为array('1'=>'#e9308d','2'=>'#e74856')，键为UID
+ * @param string $class 头像元素的CSS类名
+ * @param array|null $user 可选，指定用户信息数组，格式如array('username' => 'guest', 'avatarstatus' => 0)
+ * @return string 头像HTML代码
  */
-function avatar_block($uid=0,$headercolors=array(),$class="Topcarousel"){
-	static $colors=array('#6b69d6','#a966ef','#e9308d','#e74856','#f35b42','#00cc6a','#0078d7','#5290f3','#00b7c3','#0099bc','#018574','#c77c52','#ff8c00','#68768a','#7083cb','#26a255');
-   
-	if(!$uid){
-		$uid=getglobal('uid');
-	}
-	if($uid){
-		$user=getuserbyuid($uid);
-	}else{
-		$user=array('uid' => 0, 'username' => 'guest', 'avatarstatus' => 0 ,'adminid' => 0, 'groupid' => 7, 'credits' => 0, 'timeoffset' => 9999);
-	}
-	if(empty($user)) return '';
-	if($user['avatarstatus']){//用户已经上传头像
-		return '<img src="avatar.php?uid='.$user['uid'].'" class="img-circle special_avatar_class" title="'.$user['username'].'">';
-	}else{//没有上传头像，使用背景+首字母
-		if($uid){
-			if($headercolors[$uid]) $headerColor=$headercolors[$uid];
-			else $headerColor = C::t('user_setting')->fetch_by_skey('headerColor',$user['uid']);
-			if(empty($headerColor)){//没有设置时，创建头像背景色，并且入库
-				$colorkey = rand(1,15);
-    			$headerColor = $colors[$colorkey];
-				C::t('user_setting')->insert_by_skey('headerColor',$headerColor,$user['uid']);
-			}
-		}else{//游客默认使用第一个值；
-			$headerColor = $colors[0];
-		}
-		return '<span class="'.$class.'" style="background:'.$headerColor.'" title="'.$user['username'].'">'. new_strsubstr(ucfirst($user['username']),1,'').'</span>';
-	}
+function avatar_block($uid = 0, $headercolors = array(), $class = "Topcarousel img-avatar", $user = null) {
+    static $colors = array('#6b69d6', '#a966ef', '#e9308d', '#e74856', '#f35b42', '#00cc6a', '#0078d7', '#5290f3', '#00b7c3', '#0099bc', '#018574', '#c77c52', '#ff8c00', '#68768a', '#7083cb', '#26a255');
+    static $userheaderColors = array();
+
+    // 优先使用传入的$user数组
+    if ($user !== null) {
+        $user = array_merge(array('uid' => $uid, 'username' => 'guest', 'nickname' => '', 'avatarstatus' => 0),$user);
+    } else {
+        if ($uid) {
+            $user = getuserbyuid($uid)?: [];
+        } else {
+            global $_G;
+            if (!empty($_G['uid'])) {
+                $user = array('uid' => $_G['uid'], 'username' => $_G['username'], 'nickname' => $_G['member']['nickname'] ?? '', 'avatarstatus' => $_G['member']['avatarstatus'] ?? 0);
+            }
+        }
+    }
+    if (empty($user)) {
+        $user = array('uid' => 0, 'username' => 'guest', 'nickname' => '', 'avatarstatus' => 0);
+    }
+
+    // 用户已上传头像时返回img标签
+    if ($user['avatarstatus']) {
+        return '<img src="avatar.php?uid=' . $user['uid'] . '" ' . 'class="img-circle special_avatar_class img-avatar" ' . 'title="' . $user['username'] . '">';
+    }
+
+    // 未上传头像时生成背景+首字母的头像
+    // 确定背景颜色
+    if ($user['uid']) {
+        if (!empty($headercolors[$user['uid']])) {
+            $headerColor = $headercolors[$user['uid']];
+        } else {
+            if (!empty($userheaderColors[$user['uid']])) {
+                $headerColor = $userheaderColors[$user['uid']];
+            } else {
+                $headerColor = C::t('user_setting')->fetch_by_skey('headerColor', $user['uid']);
+                // 未设置颜色时随机生成并保存
+                if (empty($headerColor)) {
+                    $colorKey = mt_rand(0, count($colors) - 1); // 使用count避免硬编码
+                    $headerColor = $colors[$colorKey];
+                    C::t('user_setting')->insert_by_skey('headerColor', $headerColor, $user['uid']);
+                }
+                $userheaderColors[$user['uid']] = $headerColor;
+            }
+        }
+    } else {
+        // 游客默认使用第一个颜色
+        $headerColor = $colors[0];
+    }
+
+    return '<span class="' . $class . '" style="background:' . $headerColor . '" title="' . $user['username'] . '">' . new_strsubstr(ucfirst($user['username']), 1, '') . '</span>';
 }
+
 /*获取群组机构头像模板，如果没有会生成背景+首字母的头像
  * param:$gid    		需要生成的群组机构的gid;
  * param:$groupcolors  传递的群组机构(organization表的记录；array('1'=>array('aid'=>'#e9308d','orgname'=>'机构群组名称'),键为gid，值为organization表的记录(最少包含aid和orgname字段)；
  */
-function avatar_group($gid,$groupcolors=array(),$class='iconFirstWord'){
-    static $colors=array('#6b69d6','#a966ef','#e9308d','#e74856','#f35b42','#00cc6a','#0078d7','#5290f3','#00b7c3','#0099bc','#018574','#c77c52','#ff8c00','#68768a','#7083cb','#26a255');
+function avatar_group($gid, $groupcolors = array(), $class = 'iconFirstWord') {
+    static $colors = array('#6b69d6', '#a966ef', '#e9308d', '#e74856', '#f35b42', '#00cc6a', '#0078d7', '#5290f3', '#00b7c3', '#0099bc', '#018574', '#c77c52', '#ff8c00', '#68768a', '#7083cb', '#26a255');
     $gid = intval($gid);
-	if($groupcolors[$gid]){
-		if($groupcolor = $groupcolors[$gid]['aid']){
-			if(preg_match('/^\#.+/',$groupcolor)){
-				return '<span class="iconFirstWord" style="background:'.$groupcolor.';" title="'.$groupcolors[$gid]['orgname'].'">'.strtoupper(new_strsubstr($groupcolors[$gid]['orgname'],1,'')).'</span>';
-			}elseif(preg_match('/^\d+$/',$groupcolor) && $groupcolors > 0){
-				return '<img src="index.php?mod=io&op=thumbnail&width=24&height=24&path='. dzzencode('attach::' . $groupcolor).'" class="img-circle" title="'.$groupcolors[$gid]['orgname'].'">';
-			}
-		}else{
-			$colorkey = rand(1,15);
-			$groupcolor = $colors[$colorkey];
-			C::t('organization')->update($gid,array('aid'=>$groupcolor));
-			return '<span class="iconFirstWord" style="background:'.$groupcolor.';"  title="'.$groupcolors[$gid]['orgname'].'">'.strtoupper(new_strsubstr($groupcolors[$gid]['orgname'],1,'')).'</span>';
-		} 
-	}else{
-		 if(!$groupinfo = C::t('organization')->fetch($gid)){
-			return '<span class="dzz dzz-group"></span>';
-		}
-		if($groupinfo['aid']){
-			if(preg_match('/^\#.+/',$groupinfo['aid'])){
-				return '<span class="iconFirstWord" style="background:'.$groupinfo['aid'].';" title="'.$groupinfo['orgname'].'">'.strtoupper(new_strsubstr($groupinfo['orgname'],1,'')).'</span>';
-			}elseif(preg_match('/^\d+$/',$groupinfo['aid']) && $groupinfo['aid'] > 0){
-				return '<img src="index.php?mod=io&op=thumbnail&width=24&height=24&path='. dzzencode('attach::' . $groupinfo['aid']).'" class="img-circle" title="'.$groupinfo['orgname'].'">';
-			}
-		}else{
+    if ($groupcolors[$gid]) {
+        if ($groupcolor = $groupcolors[$gid]['aid']) {
+            if (preg_match('/^\#.+/', $groupcolor)) {
+                return '<span class="iconFirstWord img-avatar" style="background:' . $groupcolor . ';" title="' . $groupcolors[$gid]['orgname'] . '">' . strtoupper(new_strsubstr($groupcolors[$gid]['orgname'], 1, '')) . '</span>';
+            } elseif (preg_match('/^\d+$/', $groupcolor) && $groupcolors > 0) {
+                return '<img src="index.php?mod=io&op=thumbnail&width=24&height=24&path=' . dzzencode('attach::' . $groupcolor) . '" class="img-circle" title="' . $groupcolors[$gid]['orgname'] . '">';
+            }
+        } else {
+            $colorkey = rand(1, 15);
+            $groupcolor = $colors[$colorkey];
+            C::t('organization')->update($gid, array('aid' => $groupcolor));
+            return '<span class="iconFirstWord img-avatar" style="background:' . $groupcolor . ';"  title="' . $groupcolors[$gid]['orgname'] . '">' . strtoupper(new_strsubstr($groupcolors[$gid]['orgname'], 1, '')) . '</span>';
+        }
+    } else {
+        if (!$groupinfo = C::t('organization')->fetch($gid)) {
+            return '<span class="dzz dzz-group mdi mdi-account"></span>';
+        }
+        if ($groupinfo['aid']) {
+            if (preg_match('/^\#.+/', $groupinfo['aid'])) {
+                return '<span class="iconFirstWord img-avatar" style="background:' . $groupinfo['aid'] . ';" title="' . $groupinfo['orgname'] . '">' . strtoupper(new_strsubstr($groupinfo['orgname'], 1, '')) . '</span>';
+            } elseif (preg_match('/^\d+$/', $groupinfo['aid']) && $groupinfo['aid'] > 0) {
+                return '<img src="index.php?mod=io&op=thumbnail&width=24&height=24&path=' . dzzencode('attach::' . $groupinfo['aid']) . '" class="img-circle" title="' . $groupinfo['orgname'] . '">';
+            }
+        } else {
 
-			$colorkey = rand(1,15);
-			$groupcolor = $colors[$colorkey];
-			C::t('organization')->update($gid,array('aid'=>$groupcolor));
-			return '<span class="iconFirstWord" style="background:'.$groupcolor.';" title="'.$groupinfo['orgname'].'">'.strtoupper(new_strsubstr($groupinfo['orgname'],1,'')).'</span>';
-		} 
-	}
+            $colorkey = rand(1, 15);
+            $groupcolor = $colors[$colorkey];
+            C::t('organization')->update($gid, array('aid' => $groupcolor));
+            return '<span class="iconFirstWord img-avatar" style="background:' . $groupcolor . ';" title="' . $groupinfo['orgname'] . '">' . strtoupper(new_strsubstr($groupinfo['orgname'], 1, '')) . '</span>';
+        }
+    }
 }
-function getResourceByLang($flag){
-	$langset=getglobal('language');
-	if(empty($langset)) return '';
-	switch($flag){
-		case 'select2':
-			$t="static/select2/select2_locale_{lang}.js";
-			$src=str_replace('{lang}',$langset,$t);
-			if(file_exists($src)){
-				return $src;
-			}else{
-				return '';
-			}
-			break;
-		case 'datepicker':
-			$t="static/datepicker/i18n/datepicker-{lang}.js";
-			$src=str_replace('{lang}',$langset,$t);
-			if(file_exists($src)){
-				return $src;
-			}else{
-				return '';
-			}
-			break;
-		case 'timepicker':
-			$t="static/datepicker/timepicker/i18n/jquery-ui-timepicker-{lang}.js";
-			$src=str_replace('{lang}',$langset,$t);
-			if(file_exists($src)){
-				return $src;
-			}else{
-				return '';
-			}
-			break;
-		case 'ueditor':
-			$t="dzz/system/ueditor/lang/{lang}/{lang}.js";
-			$src=str_replace('{lang}',strtolower($langset),$t);
-			if(file_exists($src)){
-				return $src;
-			}else{
-				return '';
-			}
-			break;
-				
-	}
-}
-function checkLanguage()
-{
+
+function checkLanguage() {
     global $_G;
-    $uid = getglobal('uid');
     $langList = $_G['config']['output']['language_list'];
     $langSet = '';
 
@@ -802,56 +790,62 @@ function checkLanguage()
     return $langSet;
 }
 
-function lang($langvar = null, $vars = array(), $default = null, $curpath = '')
-{
-
+function lang($langvar = null, $vars = array(), $default = null, $curpath = '') {
     global $_G;
     $checkLanguage = $_G['language'];
     if ($curpath) {
-        include DZZ_ROOT . './' . $curpath . '/language/' . $checkLanguage . '/' . 'lang.php';
-        $_G['lang']['template'] = $lang;
+        $pathKey = 'curpath_' . $curpath;
+        if (!isset($_G['lang'][$pathKey])) {
+            $curpathlangfile = DZZ_ROOT . './' . $curpath . '/language/' . $checkLanguage . '/lang.php';
+            if (file_exists($curpathlangfile)) {
+                include $curpathlangfile;
+                $_G['lang'][$pathKey] = $lang;
+            } else {
+                $_G['lang'][$pathKey] = [];
+            }
+        }
+        $returnvalue = $_G['lang'][$pathKey];
     } else {
-        if (defined('CURSCRIPT')) {
-            $key1 = CURSCRIPT . '_template';
-        }
-        if (defined('CURSCRIPT') && defined('CURMODULE')) {
-            $key2 = CURSCRIPT . '_' . CURMODULE . '_template';
-        }
-
         if (!isset($_G['lang']['template'])) {
-            $_G['lang']['template'] = array();
-
-            if (file_exists(DZZ_ROOT . './core/language/' . $checkLanguage . '/' . 'lang.php')) {
-                include DZZ_ROOT . './core/language/' . $checkLanguage . '/' . 'lang.php';
+            $_G['lang']['template'] = [];
+            $corelangfile = DZZ_ROOT . './core/language/' . $checkLanguage . '/lang.php';
+            if (file_exists($corelangfile)) {
+                include $corelangfile;
                 $_G['lang']['template'] = $lang;
             }
         }
-
-        if (isset($key1) && !isset($_G['lang'][$key1])) {
-            if (file_exists(DZZ_ROOT . './' . CURSCRIPT . '/language/' . $checkLanguage . '/' . 'lang.php')) {
-                include DZZ_ROOT . './' . CURSCRIPT . '/language/' . $checkLanguage . '/' . 'lang.php';
-                $_G['lang']['template'] = array_merge($_G['lang']['template'], $lang);
-
+        $returnvalue = $_G['lang']['template'];
+        if (defined('CURSCRIPT')) {
+            $key1 = CURSCRIPT . '_template';
+            if (!isset($_G['lang'][$key1])) {
+                $curscriptlangfile = DZZ_ROOT . './' . CURSCRIPT . '/language/' . $checkLanguage . '/lang.php';
+                if (file_exists($curscriptlangfile)) {
+                    include $curscriptlangfile;
+                    $_G['lang'][$key1] = array_merge($_G['lang']['template'], $lang);
+                } else {
+                    $_G['lang'][$key1] = $_G['lang']['template'];
+                }
             }
-        }
-
-        if (isset($key2) && !isset($_G['lang'][$key2])) {
-            if (file_exists(DZZ_ROOT . './' . CURSCRIPT . '/' . CURMODULE . '/language/' . $checkLanguage . '/' . 'lang.php')) {
-
-                include DZZ_ROOT . './' . CURSCRIPT . '/' . CURMODULE . '/language/' . $checkLanguage . '/' . 'lang.php';
-                $_G['lang']['template'] = array_merge($_G['lang']['template'], $lang);
+            $returnvalue = $_G['lang'][$key1];
+            if (defined('CURMODULE')) {
+                $key2 = CURSCRIPT . '_' . CURMODULE . '_template';
+                if (!isset($_G['lang'][$key2])) {
+                    $curmodulelangfile = DZZ_ROOT . './' . CURSCRIPT . '/' . CURMODULE . '/language/' . $checkLanguage . '/lang.php';
+                    if (file_exists($curmodulelangfile)) {
+                        include $curmodulelangfile;
+                        $_G['lang'][$key2] = array_merge($_G['lang'][$key1], $lang);
+                    } else {
+                        $_G['lang'][$key2] = $_G['lang'][$key1];
+                    }
+                }
+                $returnvalue = $_G['lang'][$key2];
             }
-        }
-
+        }   
     }
-    $returnvalue = &$_G['lang'];
-
-    $return = $langvar !== null ? (isset($returnvalue['template'][$langvar]) ? $returnvalue['template'][$langvar] : null) : $returnvalue['template'];
+    $return = $langvar !== null ? (isset($returnvalue[$langvar]) ? $returnvalue[$langvar] : null) : $returnvalue;
     $return = $return === null ? ($default !== null ? $default : $langvar) : $return;
     $searchs = $replaces = array();
-
     if ($vars && is_array($vars)) {
-
         foreach ($vars as $k => $v) {
             $searchs[] = '{' . $k . '}';
             $replaces[] = $v;
@@ -861,13 +855,14 @@ function lang($langvar = null, $vars = array(), $default = null, $curpath = '')
     if (is_string($return) && strpos($return, '{_G/') !== false) {
         preg_match_all('/\{_G\/(.+?)\}/', $return, $gvar);
         foreach ($gvar[0] as $k => $v) {
-
-            $searchs[] = $v;
+            $searchs[] = (string)$v;
             $replaces[] = getglobal($gvar[1][$k]);
         }
     }
 
-    $return = str_replace($searchs, $replaces, $return);
+    if($searchs || $replaces) {
+		$return = str_replace($searchs, $replaces, $return);
+	}
     return $return;
 }
 
@@ -875,18 +870,21 @@ function lang($langvar = null, $vars = array(), $default = null, $curpath = '')
  * 模板函数
  * $file=>模板,$tpldir=>模板文件夹，$templateNotMust=>模板不存在时返回空字符串，屏蔽错误提示，默认不开启
  * */
-function template($file, $tpldir = '', $templateNotMust = false)
-{
+function template($file, $tpldir = '', $templateNotMust = false) {
     global $_G;
     static $tplrefresh, $timestamp, $targettplname;
-
+    if (!$tpldir && strpos($file, ':') !== false) {
+        list($templateid, $file) = explode(':', $file);
+        $tpldir = $templateid;
+        $file = $file;
+    }
     $file .= !empty($_G['inajax']) && ($file == 'common/header' || $file == 'common/footer') ? '_ajax' : '';
 
     $tplfile = $file;
 
     if ($tplrefresh === null) {
         $tplrefresh = getglobal('config/output/tplrefresh');
-        $timestamp = getglobal('timestamp');
+        $timestamp = $_G['timestamp'];
     }
 
     if (empty($timecompare) || $tplrefresh == 1 || ($tplrefresh > 1 && !($timestamp % $tplrefresh))) {
@@ -899,19 +897,15 @@ function template($file, $tpldir = '', $templateNotMust = false)
 
 }
 
-function dsign($str, $length = 16)
-{
+function dsign($str, $length = 16) {
     return substr(md5($str . getglobal('security/authkey')), 0, ($length ? max(8, $length) : 16));
 }
 
-function modauthkey($id)
-{
+function modauthkey($id) {
     return md5(getglobal('username') . getglobal('uid') . getglobal('authkey') . substr(TIMESTAMP, 0, -7) . $id);
 }
 
-
-function loadcache($cachenames, $force = false)
-{
+function loadcache($cachenames, $force = false) {
     global $_G;
     static $loadedcache = array();
     $cachenames = is_array($cachenames) ? $cachenames : array($cachenames);
@@ -939,16 +933,14 @@ function loadcache($cachenames, $force = false)
     return true;
 }
 
-function getpath($path)
-{
+function getpath($path) {
     $path = trim($path);
     $path = substr(strrchr($path, ':'), 1);
     $path = array_filter(explode('/', $path));
     return $path;
 }
 
-function dgmdate($timestamp, $format = 'dt', $timeoffset = '9999', $uformat = '')
-{
+function dgmdate($timestamp, $format = 'dt', $timeoffset = '9999', $uformat = '') {
     global $_G;
     $format == 'u' && !$_G['setting']['dateconvert'] && $format = 'dt';
     static $dformat, $tformat, $dtformat, $offset, $lang;
@@ -960,6 +952,7 @@ function dgmdate($timestamp, $format = 'dt', $timeoffset = '9999', $uformat = ''
         $lang = lang('date');
     }
     $timeoffset = $timeoffset == 9999 ? $offset : $timeoffset;
+    $timeoffset = intval($timeoffset);
     $timestamp += $timeoffset * 3600;
     $format = empty($format) || $format == 'dt' ? $dtformat : ($format == 'd' ? $dformat : ($format == 't' ? $tformat : $format));
     if ($format == 'u') {
@@ -995,7 +988,7 @@ function dgmdate($timestamp, $format = 'dt', $timeoffset = '9999', $uformat = ''
                 $return = '<span  title="' . $s . '">' . $return . '</span>';
             }
         } else {
-            $return = gmdate('Y-m-d', $timestamp) . '&nbsp;<span class="hidden-xs" title="' . $s . '">' . gmdate('H:s', $timestamp) . '</span>';
+            $return = $s;
         }
         return $return;
     } else {
@@ -1003,46 +996,39 @@ function dgmdate($timestamp, $format = 'dt', $timeoffset = '9999', $uformat = ''
     }
 }
 
-function dmktime($date)
-{
+function dmktime($date) {
     if (strpos($date, '-')) {
         $time = explode('-', $date);
-        return mktime(0, 0, 0, $time[1], $time[2], $time[0]);
+        return mktime(0, 0, 0, intval($time[1]), intval($time[2]), intval($time[0]));
     }
     return 0;
 }
 
-function dnumber($number)
-{
-    return abs($number) > 10000 ? '<span title="' . $number . '">' . intval($number / 10000) . lang('10k') . '</span>' : $number;
+function dnumber($number) {
+    return abs((int)$number) > 10000 ? '<span title="' . $number . '">' . intval($number / 10000) . lang('10k') . '</span>' : $number;
 }
 
-function savecache($cachename, $data)
-{
+function savecache($cachename, $data) {
     C::t('syscache')->insert($cachename, $data);
 }
 
-function save_syscache($cachename, $data)
-{
+function save_syscache($cachename, $data) {
     savecache($cachename, $data);
 }
 
-
-function dimplode($array)
-{
-
+function dimplode($array) {
     if (!empty($array)) {
-
+        if (!is_array($array)) {
+            $array = array($array);
+        }
         $array = array_map('addslashes', $array);
-
-        return "'" . implode("','", is_array($array) ? $array : array($array)) . "'";
+        return "'" . implode("','", $array) . "'";
     } else {
         return 0;
     }
 }
 
-function libfile($libname, $folder = '', $curpath = '')
-{ //$path 标志是那个模块内的,不指定则调用默认当前模块和核心模块的
+function libfile($libname, $folder = '', $curpath = '') { //$path 标志是那个模块内的,不指定则调用默认当前模块和核心模块的
     $libpath = '';
     if (strstr($libname, '/')) {
         list($pre, $name) = explode('/', $libname);
@@ -1082,8 +1068,7 @@ function libfile($libname, $folder = '', $curpath = '')
     return $libpath;
 }
 
-function dstrlen($str)
-{
+function dstrlen($str) {
     if (strtolower(CHARSET) != 'utf-8') {
         return strlen($str);
     }
@@ -1101,13 +1086,11 @@ function dstrlen($str)
     return $count;
 }
 
-function showTips($message = '', $type = 'json', $template = 'common/showtips')
-{
+function showTips($message = '', $type = 'json', $template = 'common/showtips') {
     core\dzz\Datareturn::data_return($type, $message, $template);
 }
 
-function cutstr($string, $length, $dot = ' ...')
-{
+function cutstr($string, $length, $dot = ' ...') {
     if (strlen($string) <= $length) {
         return $string;
     }
@@ -1182,8 +1165,7 @@ function cutstr($string, $length, $dot = ' ...')
     return $strcut . $dot;
 }
 
-function dstripslashes($string)
-{
+function dstripslashes($string) {
     if (empty($string)) return $string;
     if (is_array($string)) {
         foreach ($string as $key => $val) {
@@ -1195,23 +1177,20 @@ function dstripslashes($string)
     return $string;
 }
 
-function aidencode($aid, $type = 0, $tid = 0)
-{
+function aidencode($aid, $type = 0, $tid = 0) {
     global $_G;
     $s = !$type ? $aid . '|' . substr(md5($aid . md5($_G['config']['security']['authkey']) . TIMESTAMP . $_G['uid']), 0, 8) . '|' . TIMESTAMP . '|' . $_G['uid'] . '|' . $tid : $aid . '|' . md5($aid . md5($_G['config']['security']['authkey']) . TIMESTAMP) . '|' . TIMESTAMP;
     return rawurlencode(base64_encode($s));
 }
 
-
-function output()
-{
+function output() {
     global $_G;
     if (defined('DZZ_OUTPUTED')) {
         return;
     } else {
         define('DZZ_OUTPUTED', 1);
     }
-    if ($_G['config']['rewritestatus']) {
+    if (isset($_G['setting']['rewritestatus'])) {
         $content = ob_get_contents();
         $content = output_replace($content);
         ob_end_clean();
@@ -1223,79 +1202,75 @@ function output()
     }
 }
 
-
-function outputurl( $url="" )
-{
+function outputurl($url = "") {
     global $_G;
-    if ($_G['config']['rewritestatus']) {
+    if (isset($_G['setting']['rewritestatus'])) {
         $url = output_replace($url);
     }
     return $url;
 }
 
-function output_replace($content)
-{
+function output_replace($content) {
     global $_G;
     if (defined('IN_ADMINCP')) return $content;
     if (!empty($_G['setting']['output']['str']['search'])) {
-        
+
         $content = str_replace($_G['setting']['rewrite']['str']['search'], $_G['setting']['rewrite']['str']['replace'], $content);
     }
     if (!empty($_G['config']['rewrite']['preg']['search'])) {
-        
+
         //处理js中 app_url,mod_url
-        $string1 = "APP_URL='".MOD_URL."'";//",APP_URL='".MOD_URL."',MOD_URL = '".MOD_URL."'";
-        $string2 = "MOD_URL='".MOD_URL."'";
-        $string=array($string1,$string2);
-        $md5[]=md5($string1);
-        $md5[]=md5($string2); 
+        $string1 = "APP_URL='" . MOD_URL . "'";//",APP_URL='".MOD_URL."',MOD_URL = '".MOD_URL."'";
+        $string2 = "MOD_URL='" . MOD_URL . "'";
+        $string = array($string1, $string2);
+        $md5[] = md5($string1);
+        $md5[] = md5($string2);
         //end
-        
+
         //处理非本地连接
-        $reg = "/(https?|ftp|news):[\/]{2}([\w+\d+]+[.]{1})?[\w+\d]+[.]{1}[\w+\d]*+([^(\s|\"|\')]+)/"; 
-        preg_match_all($reg,$content,$links);
-        if( isset($links[0]) && $links[0]){
-            $siteurl =  $_G["siteurl"];
+        $reg = "/(https?|ftp|news):[\/]{2}([\w+\d+]+[.]{1})?[\w+\d]+[.]{1}[\w+\d]*+([^(\s|\"|\')]+)/";
+        preg_match_all($reg, $content, $links);
+        if (isset($links[0]) && $links[0]) {
+            $siteurl = $_G["siteurl"];
             //echo $siteurl."******";
-            foreach($links[0] as $k=>$v){
+            foreach ($links[0] as $k => $v) {
                 //echo $v."------------";
-                if( strpos($v,$siteurl)!==false){
+                if (strpos($v, $siteurl) !== false) {
                     //echo $v."----------<br/>";
-                }else{
-                     $string[]=$v;
-                     $md5[]=md5($v);
+                } else {
+                    $string[] = $v;
+                    $md5[] = md5($v);
                 }
             }
         }
-		//end
+        //end
 
-        $content=str_replace($string,$md5,$content);
-        
-        $search_arr =  $_G['config']['rewrite']['preg']['search'];
+        $content = str_replace($string, $md5, $content);
+
+        $search_arr = $_G['config']['rewrite']['preg']['search'];
         $replace_arr = $_G['config']['rewrite']['preg']['replace'];
-        $search_new=array();
-        $replace_new=array();
-        foreach($search_arr as $k=>$v ){
-            $s=$v; 
-            $v2 = substr_replace($v, '\&amp;/i',-2,2);
-            array_push($search_new,$v2); 
-            $v = substr_replace($v, '\&/i',-2,2);
-            array_push($search_new,$v);
-            array_push($search_new,$s);
-            array_push($replace_new,$replace_arr[$k]."?");
-            array_push($replace_new,$replace_arr[$k]."?");
-            array_push($replace_new,$replace_arr[$k]);  
+        $search_new = array();
+        $replace_new = array();
+        foreach ($search_arr as $k => $v) {
+            $s = $v;
+            $v2 = substr_replace($v, '\&amp;/i', -2, 2);
+            array_push($search_new, $v2);
+            $v = substr_replace($v, '\&/i', -2, 2);
+            array_push($search_new, $v);
+            array_push($search_new, $s);
+            array_push($replace_new, $replace_arr[$k] . "?");
+            array_push($replace_new, $replace_arr[$k] . "?");
+            array_push($replace_new, $replace_arr[$k]);
         }
         $content = preg_replace($search_new, $replace_new, $content);
-        
-        $content=str_replace($md5,$string,$content); 
+
+        $content = str_replace($md5, $string, $content);
     }
 
     return $content;
 }
 
-function output_ajax()
-{
+function output_ajax() {
     global $_G;
 
     $s = ob_get_contents();
@@ -1313,9 +1288,7 @@ function output_ajax()
     return $s;
 }
 
-
-function debug($var = null, $vardump = false)
-{
+function debug($var = null, $vardump = false) {
     echo '<pre>';
     $vardump = empty($var) ? true : $vardump;
     if ($vardump) {
@@ -1326,18 +1299,16 @@ function debug($var = null, $vardump = false)
     exit();
 }
 
-function debuginfo()
-{
+function debuginfo() {
     global $_G;
     if (getglobal('config/debug')) {
-        $db = &DB::object();
         $_G['debuginfo'] = array(
             'time' => number_format((microtime(true) - $_G['starttime']), 6),
-            'queries' => $db->querynum,
+            'queries' => DB::object()->querynum,
             'memory' => ucwords(C::memory()->type)
         );
-        if ($db->slaveid) {
-            $_G['debuginfo']['queries'] = 'Total ' . $db->querynum . ', Slave ' . $db->slavequery;
+        if (DB::object()->slaveid) {
+            $_G['debuginfo']['queries'] = 'Total ' . DB::object()->querynum . ', Slave ' . DB::object()->slavequery;
         }
         return TRUE;
     } else {
@@ -1345,24 +1316,28 @@ function debuginfo()
     }
 }
 
-function check_seccode($value, $idhash)
-{
-    return helper_form::check_seccode($value, $idhash);
+function check_seccode($value, $idhash, $verifyonly = false) {
+    return helper_form::check_seccode($value, $idhash, $verifyonly);
 }
 
-function check_secqaa($value, $idhash)
-{
+function check_secqaa($value, $idhash) {
     return helper_form::check_secqaa($value, $idhash);
 }
 
-function showmessage($message, $url_forward = '', $values = array(), $extraparam = array(), $custom = 0)
-{
+function make_seccode($seccode) {
+	return helper_form::make_seccode($seccode);
+}
+
+function make_secqaa() {
+	return helper_form::make_secqaa();
+}
+
+function showmessage($message, $url_forward = '', $values = array(), $extraparam = array(), $custom = 0) {
     require_once libfile('function/message');
     return dshowmessage($message, $url_forward, $values, $extraparam, $custom);
 }
 
-function submitcheck($var, $allowget = 0, $seccodecheck = 0, $secqaacheck = 0)
-{
+function submitcheck($var, $allowget = 0, $seccodecheck = 0, $secqaacheck = 0) {
     if (!getgpc($var)) {
         return FALSE;
     } else {
@@ -1370,24 +1345,20 @@ function submitcheck($var, $allowget = 0, $seccodecheck = 0, $secqaacheck = 0)
     }
 }
 
-function multi($num, $perpage, $curpage, $mpurl, $classname = '', $maxpages = 0, $page = 5, $autogoto = FALSE, $simple = FALSE, $jsfunc = FALSE)
-{
+function multi($num, $perpage, $curpage, $mpurl, $classname = '', $maxpages = 0, $page = 5, $autogoto = FALSE, $simple = FALSE, $jsfunc = FALSE) {
     return $num > $perpage ? helper_page::multi($num, $perpage, $curpage, $mpurl, $classname, $maxpages, $page, $autogoto, $simple, $jsfunc) : '';
 }
 
-function simplepage($num, $perpage, $curpage, $mpurl)
-{
+function simplepage($num, $perpage, $curpage, $mpurl) {
     return helper_page::simplepage($num, $perpage, $curpage, $mpurl);
 }
 
-function censor($message)
-{
+function censor($message) {
     $censor = dzz_censor::instance();
     return $censor->replace($message);
 }
 
-function space_merge(&$values, $tablename, $isarchive = false)
-{
+function space_merge(&$values, $tablename, $isarchive = false) {
     global $_G;
 
     $uid = empty($values['uid']) ? $_G['uid'] : $values['uid'];
@@ -1400,7 +1371,7 @@ function space_merge(&$values, $tablename, $isarchive = false)
 
                 if ($tablename == 'field') {
                     $_G['setting']['privacy'] = empty($_G['setting']['privacy']) ? array() : (is_array($_G['setting']['privacy']) ? $_G['setting']['privacy'] : dunserialize($_G['setting']['privacy']));
-                    $_G[$var]['privacy'] = empty($_G[$var]['privacy']) ? array() : is_array($_G[$var]['privacy']) ? $_G[$var]['privacy'] : dunserialize($_G[$var]['privacy']);
+                    $_G[$var]['privacy'] = empty($_G[$var]['privacy']) ? array() : (is_array($_G[$var]['privacy']) ? $_G[$var]['privacy'] : dunserialize($_G[$var]['privacy']));
                 } elseif ($tablename == 'profile') {
                     if ($_G[$var]['department']) {
                         $_G[$var]['department_tree'] = C::t('organization')->getPathByOrgid(intval($_G[$var]['department']));
@@ -1416,14 +1387,11 @@ function space_merge(&$values, $tablename, $isarchive = false)
     }
 }
 
-function runlog($file, $message, $halt = 0)
-{
+function runlog($file, $message, $halt = 0) {
     helper_log::runlog($file, $message, $halt);
 }
 
-
-function dmkdir($dir, $mode = 0777, $makeindex = TRUE)
-{
+function dmkdir($dir, $mode = 0777, $makeindex = TRUE) {
     if (!is_dir($dir)) {
         dmkdir(dirname($dir), $mode, $makeindex);
         @mkdir($dir, $mode);
@@ -1435,14 +1403,11 @@ function dmkdir($dir, $mode = 0777, $makeindex = TRUE)
     return true;
 }
 
-function dreferer($default = '')
-{
+function dreferer($default = '') {
     global $_G;
-
     $default = '';
     $_G['referer'] = !empty($_GET['referer']) ? $_GET['referer'] : (isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '');
     $_G['referer'] = substr($_G['referer'], -1) == '?' ? substr($_G['referer'], 0, -1) : $_G['referer'];
-
     if (strpos($_G['referer'], 'user.php?mod=login&op=logging&action=login')) {
         $_G['referer'] = $default;
     }
@@ -1461,9 +1426,7 @@ function dreferer($default = '')
     return strip_tags($_G['referer']);
 }
 
-
-function diconv($str, $in_charset, $out_charset = CHARSET, $ForceTable = FALSE)
-{
+function diconv($str, $in_charset, $out_charset = CHARSET, $ForceTable = FALSE) {
     global $_G;
 
     $in_charset = strtoupper($in_charset);
@@ -1491,9 +1454,7 @@ function diconv($str, $in_charset, $out_charset = CHARSET, $ForceTable = FALSE)
     return $out;
 }
 
-
-function renum($array)
-{
+function renum($array) {
     $newnums = $nums = array();
     foreach ($array as $id => $num) {
         $newnums[$num][] = $id;
@@ -1502,8 +1463,7 @@ function renum($array)
     return array($nums, $newnums);
 }
 
-function sizecount($size)
-{
+function sizecount($size) {
     if ($size >= 1073741824) {
         $size = round($size / 1073741824 * 100) / 100 . ' GB';
     } elseif ($size >= 1048576) {
@@ -1511,31 +1471,27 @@ function sizecount($size)
     } elseif ($size >= 1024) {
         $size = round($size / 1024 * 100) / 100 . ' KB';
     } else {
-        $size = $size . ' Bytes';
+        $size = intval($size) . ' Bytes';
     }
     return $size;
 }
 
-function swapclass($class1, $class2 = '')
-{
+function swapclass($class1, $class2 = '') {
     static $swapc = null;
     $swapc = isset($swapc) && $swapc != $class1 ? $class1 : $class2;
     return $swapc;
 }
 
-function writelog($file, $log)
-{
+function writelog($file, $log) {
     helper_log::writelog($file, $log);
 }
 
-function getstatus($status, $position)
-{
-    $t = $status & pow(2, $position - 1) ? 1 : 0;
+function getstatus($status, $position) {
+    $t = (int)$status & pow(2, (int)$position - 1) ? 1 : 0;
     return $t;
 }
 
-function setstatus($position, $value, $baseon = null)
-{
+function setstatus($position, $value, $baseon = null) {
     $t = pow(2, $position - 1);
     if ($value) {
         $t = $baseon | $t;
@@ -1546,50 +1502,88 @@ function setstatus($position, $value, $baseon = null)
     }
     return $t & 0xFFFF;
 }
+/*
+ * 以下命令，$value传入的是prefix，其它命令prefix都是最后一个参数
+ * 		get, rm, scard, smembers, hgetall, zcard, exists
+ * eval 时，传入参数如下：
+ * 		$cmd = 'eval', $key = script, $value = argv, 
+ * 		$ttl = 用于存储script hash的key, $prefix 会自动成为脚本的第一个参数，其余参数序号顺延
+ * zadd 时，参数如下：
+ * 		$cmd = 'zadd', $key = key, $value = member, $ttl = score
+ * zincrby 时，参数如下：
+ * 		$cmd = 'zincrby', $key = key, $value = member, $ttl = value to increase
+ * zrevrange 和 zrevrangewithscore 时，参数如下；
+ * 		$cmd = 'zrevrange', $key = key, $value = start, $ttl = end
+ * inc, dec, incex 的 $ttl 无效
+ */
+function memory($cmd, $key='', $value='', $ttl = 0, $prefix = '') {
+	static $supported_command = array(
+		'set', 'add', 'get', 'rm', 'inc', 'dec', 'exists',
+		'incex', /* 存在时才inc */
+		'sadd', 'srem', 'scard', 'smembers', 'sismember',
+		'hmset', 'hgetall', 'hexists', 'hget',
+		'eval',
+		'zadd', 'zcard', 'zrem', 'zscore', 'zrevrange', 'zincrby', 'zrevrangewithscore' /* 带score返回 */,
+		'pipeline', 'commit', 'discard'
+	);
 
-
-function memory($cmd, $key = '', $value = '', $ttl = 0, $prefix = '')
-{
-    if ($cmd == 'check') {
-        return C::memory()->enable ? C::memory()->type : '';
-    } elseif (C::memory()->enable && in_array($cmd, array('set', 'get', 'rm', 'inc', 'dec'))) {
-        if (defined('DZZ_DEBUG') && DZZ_DEBUG) {
-            if (is_array($key)) {
-                foreach ($key as $k) {
-                    C::memory()->debug[$cmd][] = ($cmd == 'get' || $cmd == 'rm' ? $value : '') . $prefix . $k;
-                }
-            } else {
-                C::memory()->debug[$cmd][] = ($cmd == 'get' || $cmd == 'rm' ? $value : '') . $prefix . $key;
-            }
-        }
-        switch ($cmd) {
-            case 'set':
-                return C::memory()->set($key, $value, $ttl, $prefix);
-                break;
-            case 'get':
-                return C::memory()->get($key, $value);
-                break;
-            case 'rm':
-                return C::memory()->rm($key, $value);
-                break;
-            case 'inc':
-                return C::memory()->inc($key, $value ? $value : 1);
-                break;
-            case 'dec':
-                return C::memory()->dec($key, $value ? $value : -1);
-                break;
-        }
-    }
-    return null;
+	if($cmd == 'check') {
+		return  C::memory()->enable ? C::memory()->type : '';
+	} elseif(C::memory()->enable && in_array($cmd, $supported_command)) {
+		if(defined('DZZ_DEBUG') && DZZ_DEBUG) {
+			if(is_array($key)) {
+				foreach($key as $k) {
+					C::memory()->debug[$cmd][] = ($cmd == 'get' || $cmd == 'rm' || $cmd == 'add' ? $value : '') . $prefix . $k;
+				}
+			} else {
+				if ($cmd === 'hget') {
+					C::memory()->debug[$cmd][] = $prefix . $key . "->" . $value;
+				} elseif ($cmd === 'eval') {
+					C::memory()->debug[$cmd][] = $key . "->" . $ttl;
+				} else {
+					C::memory()->debug[$cmd][] = ($cmd == 'get' || $cmd == 'rm' || $cmd == 'add' ? $value : '') . $prefix . $key;
+				}
+			}
+		}
+		switch ($cmd) {
+			case 'set': return C::memory()->set($key, $value, $ttl, $prefix); break;
+			case 'add': return C::memory()->add($key, $value, $ttl, $prefix); break;
+			case 'get': return C::memory()->get($key, $value); break;
+			case 'rm': return C::memory()->rm($key, $value); break;
+			case 'exists': return C::memory()->exists($key, $value); break;
+			case 'inc': return C::memory()->inc($key, $value ? $value : 1, $prefix); break;
+			case 'incex': return C::memory()->incex($key, $value ? $value : 1, $prefix); break;
+			case 'dec': return C::memory()->dec($key, $value ? $value : 1, $prefix); break;
+			case 'sadd': return C::memory()->sadd($key, $value, $prefix); break;
+			case 'srem': return C::memory()->srem($key, $value, $prefix); break;
+			case 'scard': return C::memory()->scard($key, $value); break;
+			case 'smembers': return C::memory()->smembers($key, $value); break;
+			case 'sismember': return C::memory()->sismember($key, $value, $prefix); break;
+			case 'hmset': return C::memory()->hmset($key, $value, $prefix); break;
+			case 'hgetall': return C::memory()->hgetall($key, $value); break;
+			case 'hexists': return C::memory()->hexists($key, $value, $prefix); break;
+			case 'hget': return C::memory()->hget($key, $value, $prefix); break;
+			case 'eval': return C::memory()->evalscript($key, $value, $ttl, $prefix); break;
+			case 'zadd': return C::memory()->zadd($key, $value, $ttl, $prefix); break;
+			case 'zrem': return C::memory()->zrem($key, $value, $prefix); break;
+			case 'zscore': return C::memory()->zscore($key, $value, $prefix); break;
+			case 'zcard': return C::memory()->zcard($key, $value); break;
+			case 'zrevrange': return C::memory()->zrevrange($key, $value, $ttl, $prefix); break;
+			case 'zrevrangewithscore': return C::memory()->zrevrange($key, $value, $ttl, $prefix, true); break;
+			case 'zincrby': return C::memory()->zincrby($key, $value, $ttl ? $ttl : 1, $prefix); break;
+			case 'pipeline': return C::memory()->pipeline(); break;
+			case 'commit': return C::memory()->commit(); break;
+			case 'discard': return C::memory()->discard(); break;
+		}
+	}
+	return null;
 }
 
-function ipaccess($ip, $accesslist)
-{
+function ipaccess($ip, $accesslist) {
     return preg_match("/^(" . str_replace(array("\r\n", ' '), array('|', ''), preg_quote($accesslist, '/')) . ")/", $ip);
 }
 
-function ipbanned($onlineip)
-{
+function ipbanned($onlineip) {
     global $_G;
 
     if ($_G['setting']['ipaccess'] && !ipaccess($onlineip, $_G['setting']['ipaccess'])) {
@@ -1608,23 +1602,21 @@ function ipbanned($onlineip)
     }
 }
 
-
-function sysmessage($message)
-{
+function sysmessage($message) {
     helper_sysmessage::show($message);
 }
 
-function getexpiration()
-{
+function getexpiration() {
     global $_G;
     $date = getdate($_G['timestamp']);
     return mktime(0, 0, 0, $date['mon'], $date['mday'], $date['year']) + 86400;
 }
 
-function return_bytes($val)
-{
-    $val = trim($val);
-    $last = strtolower($val{strlen($val) - 1});
+function return_bytes($val) {
+    $last = strtolower($val[strlen($val) - 1]);
+    if (!is_numeric($val)) {
+        $val = substr(trim($val), 0, -1);
+    }
     switch ($last) {
         case 'g':
             $val *= 1024;
@@ -1636,9 +1628,7 @@ function return_bytes($val)
     return $val;
 }
 
-
-function getimgthumbname($fileStr, $extend = '.thumb.jpg', $holdOldExt = true)
-{
+function getimgthumbname($fileStr, $extend = '.thumb.jpg', $holdOldExt = true) {
     if (empty($fileStr)) {
         return '';
     }
@@ -1650,10 +1640,9 @@ function getimgthumbname($fileStr, $extend = '.thumb.jpg', $holdOldExt = true)
 }
 
 
-function dintval($int, $allowarray = false)
-{
+function dintval($int, $allowarray = false) {
     $ret = intval($int);
-    if ($int == $ret || !$allowarray && is_array($int)) return $ret;
+    if ($int == '' || $int == $ret || !$allowarray && is_array($int)) return $ret;
     if ($allowarray && is_array($int)) {
         foreach ($int as &$v) {
             $v = dintval($v, true);
@@ -1669,11 +1658,10 @@ function dintval($int, $allowarray = false)
     return $ret;
 }
 
-function strhash($string, $operation = 'DECODE', $key = '')
-{
+function strhash($string, $operation = 'DECODE', $key = '') {
     $key = md5($key != '' ? $key : getglobal('authkey'));
     if ($operation == 'DECODE') {
-        $hashcode = gzuncompress(base64_decode(($string)));
+        $hashcode = gzuncompress(base64_decode($string));
         $string = substr($hashcode, 0, -16);
         $hash = substr($hashcode, -16);
         unset($hashcode);
@@ -1688,39 +1676,16 @@ function strhash($string, $operation = 'DECODE', $key = '')
     return base64_encode(gzcompress($string . $vkey));
 }
 
-function dunserialize($data)
-{
-    if (($ret = unserialize($data)) === false) {
+function dunserialize($data) {
+    if (is_array($data)) {
+        $ret = $data;
+    } elseif (($ret = unserialize($data)) === false) {
         $ret = unserialize(stripslashes($data));
     }
     return $ret;
 }
 
-function browserversion($type)
-{
-    static $return = array();
-    static $types = array('ie' => 'msie', 'firefox' => '', 'chrome' => '', 'opera' => '', 'safari' => '', 'mozilla' => '', 'webkit' => '', 'maxthon' => '', 'qq' => 'qqbrowser');
-    if (!$return) {
-        $useragent = strtolower($_SERVER['HTTP_USER_AGENT']);
-        $other = 1;
-        foreach ($types as $i => $v) {
-            $v = $v ? $v : $i;
-            if (strpos($useragent, $v) !== false) {
-                preg_match('/' . $v . '(\/|\s)([\d\.]+)/i', $useragent, $matches);
-                $ver = $matches[2];
-                $other = $ver !== 0 && $v != 'mozilla' ? 0 : $other;
-            } else {
-                $ver = 0;
-            }
-            $return[$i] = $ver;
-        }
-        $return['other'] = $other;
-    }
-    return $return[$type];
-}
-
-function removedirectory($dirname, $keepdir = FALSE, $time = 0)
-{
+function removedirectory($dirname, $keepdir = FALSE, $time = 0) {
     $dirname = str_replace(array("\n", "\r", '..'), array('', '', ''), $dirname);
 
     if (!is_dir($dirname)) {
@@ -1738,260 +1703,83 @@ function removedirectory($dirname, $keepdir = FALSE, $time = 0)
     return !$keepdir ? (@rmdir($dirname) ? TRUE : FALSE) : TRUE;
 }
 
-global $documentexts, $textexts, $unRunExts, $docexts, $imageexts, $idtype2type;
+global $documentexts, $textexts, $unRunExts, $imageexts;
 $documentexts = array('DZZDOC', 'HTM', 'HTML', 'SHTM', 'SHTML', 'HTA', 'HTC', 'XHTML', 'STM', 'SSI', 'JS', 'JSON', 'AS', 'ASC', 'ASR', 'XML', 'XSL', 'XSD', 'DTD', 'XSLT', 'RSS', 'RDF', 'LBI', 'DWT', 'ASP', 'ASA', 'ASPX', 'ASCX', 'ASMX', 'CONFIG', 'CS', 'CSS', 'CFM', 'CFML', 'CFC', 'TLD', 'TXT', 'PHP', 'PHP3', 'PHP4', 'PHP5', 'PHP-DIST', 'PHTML', 'JSP', 'WML', 'TPL', 'LASSO', 'JSF', 'VB', 'VBS', 'VTM', 'VTML', 'INC', 'SQL', 'JAVA', 'EDML', 'MASTER', 'INFO', 'INSTALL', 'THEME', 'CONFIG', 'MODULE', 'PROFILE', 'ENGINE', 'DOC', 'DOCX', 'XLS', 'XLSX', 'PPT', 'PPTX', 'ODT', 'ODS', 'ODG', 'RTF', 'ET', 'DPX', 'WPS');
 $textexts = array('DZZDOC', 'HTM', 'HTML', 'SHTM', 'SHTML', 'HTA', 'HTC', 'XHTML', 'STM', 'SSI', 'JS', 'JSON', 'AS', 'ASC', 'ASR', 'XML', 'XSL', 'XSD', 'DTD', 'XSLT', 'RSS', 'RDF', 'LBI', 'DWT', 'ASP', 'ASA', 'ASPX', 'ASCX', 'ASMX', 'CONFIG', 'CS', 'CSS', 'CFM', 'CFML', 'CFC', 'TLD', 'TXT', 'PHP', 'PHP3', 'PHP4', 'PHP5', 'PHP-DIST', 'PHTML', 'JSP', 'WML', 'TPL', 'LASSO', 'JSF', 'VB', 'VBS', 'VTM', 'VTML', 'INC', 'SQL', 'JAVA', 'EDML', 'MASTER', 'INFO', 'INSTALL', 'THEME', 'CONFIG', 'MODULE', 'PROFILE', 'ENGINE');
 $unRunExts = array('htm', 'html', 'js', 'php', 'jsp', 'asp', 'aspx', 'xml', 'htc', 'shtml', 'shtm', 'vbs'); //需要阻止运行的后缀名；
-$docexts = array('DOC', 'DOCX', 'XLS', 'XLSX', 'PPT', 'PPTX', 'ODT', 'ODS', 'ODG', 'RTF', 'ET', 'DPX', 'WPS');
-//echo strtolower(implode(',',$docexts));
-$imageexts = array('JPG', 'JPEG', 'GIF', 'PNG', 'BMP');
-$videoexts =
-$idtype2type = array(
-    'picid' => 'image',
-    'lid' => 'link',
-    'mid' => 'music',
-    'vid' => 'video',
-    'did' => 'document',
-    'appid' => 'app',
-    'qid' => 'attach',
-    'uid' => 'user'
-);
-function get_os()
-{
-    $agent = $_SERVER['HTTP_USER_AGENT'];
-    $os = false;
-
-    if (eregi('win', $agent) && eregi('nt 5.1', $agent)) {
-        $os = 'Windows XP';
-    } else if (eregi('win', $agent) && eregi('nt 5.0', $agent)) {
-        $os = 'Windows 2000';
-    } else if (eregi('win', $agent) && eregi('nt 5.2', $agent)) {
-        $os = 'Windows 2003';
-    } else if (eregi('win', $agent) && eregi('nt 6.0', $agent)) {
-        $os = 'Windows 2008';
-    } else if (eregi('win', $agent) && eregi('6.0', $agent)) {
-        $os = 'Windows vista';
-    } else if (eregi('win', $agent) && eregi('6.1', $agent)) {
+$imageexts = array('JPG', 'JPEG', 'GIF', 'PNG', 'BMP', 'webp');
+function get_os($agent = '') {
+    if (!$agent) $agent = $_SERVER['HTTP_USER_AGENT'];
+    $os = 'unknown';
+    if (stristr($agent, 'iPad')) {
+        $os = "iPad";
+    } elseif (preg_match('/Android (([0-9_.]{1,3})+)/i', $agent, $version)) {
+        $os = "Android " . $version[1];
+    } elseif (preg_match('/iPhone OS (([0-9_.]{1,3})+)/i', $agent, $version)) {
+        $os = "iPhone " . $version[1];
+    } elseif (preg_match('/win/i', $agent) && strpos($agent, '95')) {
+        $os = 'Windows 95';
+    } elseif (preg_match('/win 9x/i', $agent) && strpos($agent, '4.90')) {
+        $os = 'Windows ME';
+    } elseif (preg_match('/win/i', $agent) && preg_match('/98/i', $agent)) {
+        $os = 'Windows 98';
+    } elseif (preg_match('/win/i', $agent) && preg_match('/nt 6.0/i', $agent)) {
+        $os = 'Windows Vista';
+    } elseif (preg_match('/win/i', $agent) && preg_match('/nt 6.1/i', $agent)) {
         $os = 'Windows 7';
-    } else if (eregi('win', $agent) && eregi('6.2', $agent)) {
+    } elseif (preg_match('/win/i', $agent) && preg_match('/nt 6.2/i', $agent)) {
         $os = 'Windows 8';
-    } else if (eregi('win', $agent) && eregi('nt', $agent)) {
+    } elseif (preg_match('/win/i', $agent) && preg_match('/nt 10.0/i', $agent)) {
+        $os = 'Windows 10';
+    } elseif (preg_match('/win/i', $agent) && preg_match('/nt 5.1/i', $agent)) {
+        $os = 'Windows XP';
+    } elseif (preg_match('/win/i', $agent) && preg_match('/nt 5/i', $agent)) {
+        $os = 'Windows 2000';
+    } elseif (preg_match('/win/i', $agent) && preg_match('/nt/i', $agent)) {
         $os = 'Windows NT';
-    } else if (eregi('win', $agent) && ereg('32', $agent)) {
+    } elseif (preg_match('/win/i', $agent) && preg_match('/32/i', $agent)) {
         $os = 'Windows 32';
-    } else if (eregi('linux', $agent) && ereg('Android', $agent)) {
-        $os = 'Android';
-    } else if (eregi('linux', $agent)) {
+    } elseif (preg_match('/linux/i', $agent)) {
         $os = 'Linux';
-    } else if (eregi('unix', $agent)) {
+    } elseif (preg_match('/unix/i', $agent)) {
         $os = 'Unix';
-    } else if (eregi('sun', $agent) && eregi('os', $agent)) {
+    } elseif (preg_match('/sun/i', $agent) && preg_match('/os/i', $agent)) {
         $os = 'SunOS';
-    } else if (eregi('ibm', $agent) && eregi('os', $agent)) {
+    } elseif (preg_match('/ibm/i', $agent) && preg_match('/os/i', $agent)) {
         $os = 'IBM OS/2';
-    } else if (eregi('Mac', $agent) && eregi('Macintosh', $agent)) {
+    } elseif (preg_match('/Mac/i', $agent) && preg_match('/PC/i', $agent)) {
         $os = 'Macintosh';
-    } else if (eregi('PowerPC', $agent)) {
+    } elseif (preg_match('/PowerPC/i', $agent)) {
         $os = 'PowerPC';
-    } /* else if (eregi('AIX', $agent))
-     {
-       $os = 'AIX';
-     }
-     else if (eregi('HPUX', $agent))
-     {
-       $os = 'HPUX';
-     }
-     else if (eregi('NetBSD', $agent))
-     {
-       $os = 'NetBSD';
-     }
-     else if (eregi('BSD', $agent))
-     {
-       $os = 'BSD';
-     }
-     else if (ereg('OSF1', $agent))
-     {
-       $os = 'OSF1';
-     }
-     else if (ereg('IRIX', $agent))
-     {
-       $os = 'IRIX';
-     }
-     else if (eregi('FreeBSD', $agent))
-     {
-       $os = 'FreeBSD';
-     }
-     else if (eregi('teleport', $agent))
-     {
-       $os = 'teleport';
-     }
-     else if (eregi('flashget', $agent))
-     {
-       $os = 'flashget';
-     }
-     else if (eregi('webzip', $agent))
-     {
-       $os = 'webzip';
-     }
-     else if (eregi('offline', $agent))
-     {
-       $os = 'offline';
-     }*/
-    else {
-        $os = 'Unknown';
+    } elseif (preg_match('/AIX/i', $agent)) {
+        $os = 'AIX';
+    } elseif (preg_match('/HPUX/i', $agent)) {
+        $os = 'HPUX';
+    } elseif (preg_match('/NetBSD/i', $agent)) {
+        $os = 'NetBSD';
+    } elseif (preg_match('/BSD/i', $agent)) {
+        $os = 'BSD';
+    } elseif (preg_match('/OSF1/i', $agent)) {
+        $os = 'OSF1';
+    } elseif (preg_match('/IRIX/i', $agent)) {
+        $os = 'IRIX';
+    } elseif (preg_match('/FreeBSD/i', $agent)) {
+        $os = 'FreeBSD';
+    } elseif (preg_match('/teleport/i', $agent)) {
+        $os = 'teleport';
+    } elseif (preg_match('/flashget/i', $agent)) {
+        $os = 'flashget';
+    } elseif (preg_match('/webzip/i', $agent)) {
+        $os = 'webzip';
+    } elseif (preg_match('/offline/i', $agent)) {
+        $os = 'offline';
+    } else {
+        $os = 'unkonow';
     }
     return $os;
 }
 
-function array_sort($arr, $keys, $type = 'asc')
-{ //二维数组排序；
-    $keysvalue = $new_array = array();
-    foreach ($arr as $k => $v) {
-        $keysvalue[$k] = $v[$keys];
-    }
-    if ($type == 'asc') {
-        asort($keysvalue);
-    } else {
-        arsort($keysvalue);
-    }
-    reset($keysvalue);
-    foreach ($keysvalue as $k => $v) {
-        $new_array[$k] = $arr[$k];
-    }
-    return $new_array;
-}
-
-
-if (!function_exists('json_decode')) {
-    function json_decode($content, $assoc = false)
-    {
-        require_once DZZ_ROOT . '/dzz/class/class_json.php';
-        if ($assoc) {
-            $json = new Services_JSON(SERVICES_JSON_LOOSE_TYPE);
-        } else {
-            $json = new Services_JSON;
-        }
-        return $json->decode($content);
-    }
-}
-
-if (!function_exists('json_encode')) {
-    function json_encode($content)
-    {
-        require_once DZZ_ROOT . '/dzz/class/class_json.php';
-        $json = new Services_JSON;
-        return $json->encode($content);
-    }
-}
-
-function arr_encode(&$array)
-{
-    foreach ($array as $key => $value) {
-        if (is_array($value)) {
-            arr_encode($array[$key]);
-        } else {
-            $array[$key] = (diconv(stripslashes($value), CHARSET, 'UTF-8'));
-        }
-    }
-}
-
-function json_encode_gbk($array)
-{
-    global $_G;
-    arr_encode($array);
-    $json = json_encode($array);
-    return ($json);
-}
-
-function getThames()
-{//处理风格
-    global $_G;
-    $thames = DB::fetch_first("SELECT * FROM " . DB::table('user_thame') . " WHERE uid='{$_G['uid']}'");
-    $return = $data = array();
-    $arr = array();
-    if (empty($thames['thame']) || (!$arr = DB::fetch_first("select * from " . DB::table('thame') . " where id='{$thames['thame']}'"))) {
-        $arr = DB::fetch_first("select * from " . DB::table('thame') . " where 1 ORDER BY `default` DESC LIMIT 1");
-    }
-    if (empty($arr['folder'])) $arr['folder'] = 'colorful';
-    $arr['modules'] = unserialize(stripslashes($arr['modules']));
-
-    if (empty($arr['modules']['window'])) {
-        $arr['modules']['window'] = 'colorful';
-    }
-    if (empty($arr['modules']['filemanage'])) {
-        $arr['modules']['filemanage'] = 'window_jd';
-    }
-    if (empty($arr['modules']['icoblock'])) {
-        $arr['modules']['icoblock'] = 'default';
-    }
-    if (empty($arr['modules']['menu'])) {
-        $arr['modules']['menu'] = 'default';
-    }
-    if (empty($arr['modules']['startmenu'])) {
-        $arr['modules']['startmenu'] = 'default';
-    }
-    if (empty($arr['modules']['taskbar'])) {
-        $arr['modules']['taskbar'] = 'default';
-    }
-    if (!$arr['backimg']) $arr['backimg'] = 'dzz/styles/thame/' . $arr['folder'] . '/back.jpg';
-    $data['system'] = $arr;
-    $data['custom'] = array(
-        'custom_backimg' => !empty($thames['custom_backimg']) ? $thames['custom_backimg'] : '',
-        'custom_url' => !empty($thames['custom_url']) ? $thames['custom_url'] : '',
-        'custom_color' => !empty($thames['custom_color']) ? $thames['custom_color'] : '',
-        'custom_btype' => !empty($thames['custom_btype']) ? $thames['custom_btype'] : '',
-
-    );
-
-    $return['data'] = $data;
-    $return['thame'] = array(
-        'folder' => $arr['folder'],
-        'backimg' => !empty($thames['custom_backimg']) ? $thames['custom_backimg'] : $arr['backimg'],
-        'color' => !empty($arr['enable_color']) ? (!empty($thames['custom_color']) ? $thames['custom_color'] : $arr['color']) : '',
-        'modules' => $arr['modules'],
-    );
-    return $return;
-}
-
-function getTableBytype($type)
-{
-    switch ($type) {
-        case 'folder':
-            return array('fid', 'folder');
-        case 'attach':
-            return array('qid', 'source_attach');
-        case 'document':
-            return array('did', 'source_document');
-        case 'image':
-            return array('picid', 'source_image');
-        case 'link':
-            return array('lid', 'source_link');
-        case 'video':
-            return array('vid', 'source_video');
-        case 'music':
-            return array('mid', 'source_music');
-        case 'topic':
-            return array('tid', 'source_topic');
-        case 'app':
-            return array('appid', 'app_market');
-        case 'user':
-            return array('uid', 'user');
-    }
-    return false;
-}
-
-function getsource_by_idtype($type, $oid)
-{
-    global $_G;
-    if ($arr = getTableBytype($type)) {
-        return C::t($arr[1])->fetch($oid);
-    } else {
-        return false;
-    }
-}
-
-function topshowmessage($msg)
-{
+function topshowmessage($msg) {
     include template('common/header_common');
     echo "<script type=\"text/javascript\">";
     echo "try{if(top._config){top.showDialog('" . $msg . "');}else{alert('" . $msg . "');}}catch(e){alert('" . $msg . "');}";
@@ -2000,8 +1788,7 @@ function topshowmessage($msg)
     exit();
 }
 
-function SpaceSize($size, $gid=0, $isupdate = 0, $uid=0)
-{
+function SpaceSize($size, $gid = 0, $isupdate = 0, $uid = 0) {
     //size: 增加的话为正值，减少的话为负值；
     //gid : 大于零位群组空间，否则为$_G['uid']的空间，
     //isupdate: 为true，则实际改变空间，否则只是检查是否有空间
@@ -2009,16 +1796,16 @@ function SpaceSize($size, $gid=0, $isupdate = 0, $uid=0)
     global $_G, $space;
     if (empty($uid)) $uid = $_G['uid'];
     if ($gid > 0) {
-        if (!$org = C::t('organization')->fetch($gid)) { //机构不存在时，返回错误；
-            //return false;
+        if ($org = C::t('organization')->fetch($gid)) { //机构不存在时，返回错误；
+            $spacearr['usesize'] = intval($org['usesize']);
+            $spacearr['maxspacesize'] = C::t('organization')->get_usespace_size_by_orgid($gid);
         }
-        $spacearr['usesize'] = intval($org['usesize']);
-
-        $spacearr['maxspacesize'] = C::t('organization')->get_usespace_size_by_orgid($gid);
     } else {
-        if (!$space) {
+        if ($uid) {
             $space = dzzgetspace($uid);
-        } else {
+        } elseif (!$space) {
+            $space = dzzgetspace($uid);
+        } elseif($uid) {
             $space['usesize'] = DB::result_first("select usesize from %t where uid=%d", array('user_field', $uid));
         }
         $spacearr = $space;
@@ -2027,7 +1814,7 @@ function SpaceSize($size, $gid=0, $isupdate = 0, $uid=0)
         $new_usesize = ($spacearr['usesize'] + $size) > 0 ? ($spacearr['usesize'] + $size) : 0;
         if ($gid > 0) {
             C::t('organization')->update($gid, array('usesize' => $new_usesize));
-        } else {
+        } elseif($uid) {
             C::t('user_field')->update($uid, array('usesize' => $new_usesize));
         }
         return true;
@@ -2052,24 +1839,7 @@ function SpaceSize($size, $gid=0, $isupdate = 0, $uid=0)
     }
 }
 
-function getPositionName($fid)
-{
-    $return = '';
-    $folder = C::t('folder')->fetch($fid);
-    if ($folder['flag'] == 'dock') {
-        $return = lang('dock');
-
-    } elseif ($folder['flag'] == 'desktop') {
-        $return = lang('desktop');
-    } else {
-        $return = $folder['fname'];
-    }
-    if ($return) return '"' . $return . '"';
-    else return '';
-}
-
-function getPathByPfid($pfid, $arr = array(), $count = 0)
-{
+function getPathByPfid($pfid, $arr = array(), $count = 0) {
     //static $arr=array();
     //static $count=0;
     if ($count > 100) return $arr; //防止死循环；
@@ -2079,16 +1849,11 @@ function getPathByPfid($pfid, $arr = array(), $count = 0)
         if ($value['pfid'] > 0 && $value['pfid'] != $pfid) $arr = getPathByPfid($value['pfid'], $arr, $count);
     }
     //$arr=array_reverse($arr);
-
     return $arr;
-
 }
 
-
-
 //返回自己和上级目录fid数组；
-function getTopFid($fid, $i = 0, $arr = array())
-{
+function getTopFid($fid, $i = 0, $arr = array()) {
     $arr[] = $fid;
     if ($i > 100) return $arr; //防止死循环；
     else $i++;
@@ -2098,72 +1863,7 @@ function getTopFid($fid, $i = 0, $arr = array())
     return $arr;
 }
 
-function getGidByContainer($container)
-{
-    global $_G;
-    if (strpos($container, 'icosContainer_folder_') !== false) {
-        $fid = intval(str_replace('icosContainer_folder_', '', $container));
-        if ($fid > 0) return DB::result_first("select gid from " . DB::table('folder') . " where fid='{$fid}'");
-        else return 0;
-    } else {
-        return 0;
-    }
-}
-
-function getFidByContainer($container)
-{
-    global $_G;
-    if (strpos($container, 'icosContainer_body_') !== false) {
-        $fid = intval(str_replace('icosContainer_folder_', '', $container));
-        return DB::result_first("select fid from " . DB::table('folder') . " where flag='desktop' and uid='" . $_G['uid'] . "'");
-    } elseif (strpos($container, 'icosContainer_folder_') !== false) {
-        $fid = intval(str_replace('icosContainer_folder_', '', $container));
-        return DB::result_first("select fid from " . DB::table('folder') . " where fid='{$fid}'");
-    } elseif (strpos($container, '_dock_') !== false) {
-        return DB::result_first("select fid from " . DB::table('folder') . " where flag='dock' and uid='" . $_G['uid'] . "'");
-    } elseif ($container == '_dock') {
-        return DB::result_first("select fid from " . DB::table('folder') . " where flag='dock' and uid='" . $_G['uid'] . "'");
-    } else {
-        return false;
-    }
-}
-
-function getContainerByFid($pfid)
-{
-    global $_G;
-    $folder = C::t('folder')->fetch($pfid);
-    switch ($folder['flag']) {
-        case 'desktop':
-            return 'icosContainer_body_' . $pfid;
-        case 'dock':
-            return '_dock';
-        case 'folder':
-            return 'icosContainer_folder_' . $pfid;
-        case 'organization':
-            return 'icosContainer_folder_' . $pfid;
-        default:
-            return '';
-    }
-}
-
-
-/*function replace_remote($icoarr){
-	global $_G;
-	switch($icoarr['type']){
-		case 'attach':case 'document':
-			$icoarr['url']='';
-			break;
-		case 'image':
-			if($icoarr['thumb']) $icoarr['img']=$_G['setting']['attachurl'].getimgthumbname($icoarr['url']);
-			else $icoarr['img']=getAttachUrl(array('attachment'=>$icoarr['url'],'remote'=>$icoarr['remote']),true);
-			$icoarr['_bz']=$bz;
-			$icoarr['url']=getAttachUrl(array('attachment'=>$icoarr['url'],'remote'=>$icoarr['remote']),true);
-			break;
-	}
-	return $icoarr;
-}*/
-function replace_canshu($str, $data = array())
-{
+function replace_canshu($str, $data = array()) {
     global $_G;
     $replacearr = array('{dzzscript}' => 'index.php', '{DZZSCRIPT}' => 'index.php', '{adminscript}' => 'admin.php', '{ADMINSCRIPT}' => 'admin.php', '{uid}' => $_G['uid']);
     $search = array();
@@ -2175,8 +1875,7 @@ function replace_canshu($str, $data = array())
     return str_replace($search, $replace, $str);
 }
 
-function dzz_libfile($libname, $folder = '')
-{
+function dzz_libfile($libname, $folder = '') {
     $libpath = DZZ_ROOT . '/dzz/' . $folder;
     if (strstr($libname, '/')) {
         list($pre, $name) = explode('/', $libname);
@@ -2186,64 +1885,7 @@ function dzz_libfile($libname, $folder = '')
     }
 }
 
-function dzzlang($file, $langvar = null, $vars = array(), $default = null)
-{
-    global $_G;
-//	return lang($file,$langvar,$vars,$defualt,'dzz/admin');
-    list($path, $file) = explode('/', $file);
-    if (!$file) {
-        $file = $path;
-        $path = '';
-    }
-
-    if ($path == '') {
-        $vars1 = explode(':', $file);
-        if (count($vars1) == 2) {
-            list($plugfolder, $file) = explode(':', $file);
-            $key = 'plugin_' . $plugfolder . '_' . $file;
-            if (!isset($_G['lang'][$key])) {
-                include DZZ_ROOT . './dzz/plugin/' . $plugfolder . '/language/' . 'lang_' . $file . '.php';
-                $_G['lang'][$key] = $lang;
-            }
-        } else {
-            $key = $file;
-            if (!isset($_G['lang'][$key])) {
-                include DZZ_ROOT . './dzz/language/' . ($path == '' ? '' : $path . '/') . 'lang_' . $file . '.php';
-                $_G['lang'][$key] = $lang;
-            }
-        }
-        $returnvalue = &$_G['lang'];
-    } else {
-        $key = $path == '' ? $file : $path . '_' . $file;
-        if (!isset($_G['lang'][$key])) {
-            include DZZ_ROOT . './dzz/' . $path . '/language/lang_' . $file . '.php';
-            $_G['lang'][$key] = $lang;
-        }
-
-        $returnvalue = &$_G['lang'];
-    }
-    $return = $langvar !== null ? (isset($returnvalue[$key][$langvar]) ? $returnvalue[$key][$langvar] : null) : $returnvalue[$key];
-    $return = $return === null ? ($default !== null ? $default : $langvar) : $return;
-    $searchs = $replaces = array();
-    if ($vars && is_array($vars)) {
-        foreach ($vars as $k => $v) {
-            $searchs[] = '{' . $k . '}';
-            $replaces[] = $v;
-        }
-    }
-    if (is_string($return) && strpos($return, '{_G/') !== false) {
-        preg_match_all('/\{_G\/(.+?)\}/', $return, $gvar);
-        foreach ($gvar[0] as $k => $v) {
-            $searchs[] = $v;
-            $replaces[] = getglobal($gvar[1][$k]);
-        }
-    }
-    $return = str_replace($searchs, $replaces, $return);
-    return $return;
-}
-
-function getFileTypeName($type, $ext)
-{
+function getFileTypeName($type, $ext) {
     $typename = '';
     switch ($type) {
         case 'image':
@@ -2296,15 +1938,10 @@ function getFileTypeName($type, $ext)
     return $name;
 }
 
-
-
-function dzzgetspace($uid)
-{
+function dzzgetspace($uid) {
     global $_G;
-    $space = array();
-    if ($uid == 0) {
-        $space = array('uid' => 0, 'self' => 0, 'username' => '', 'adminid' => 0, 'groupid' => 7, 'credits' => 0, 'timeoffset' => 9999, 'usesize' => 0, 'maxspacesize' => -1, 'attachextensions' => '');
-    } else {
+    $space = array('uid' => 0, 'self' => 0, 'username' => '', 'adminid' => 0, 'groupid' => 7, 'credits' => 0, 'timeoffset' => 9999, 'usesize' => 0, 'maxspacesize' => -1, 'attachextensions' => '');
+    if ($uid > 0) {
         $space = getuserbyuid($uid);
     }
 
@@ -2318,72 +1955,33 @@ function dzzgetspace($uid)
 
     //获取相关设置信息
     $setting = $_G['setting'];
-    if ($config = DB::fetch_first("select usesize,attachextensions,maxattachsize,addsize,buysize,perm,taskbar,userspace from " . DB::table('user_field') . " where uid='{$uid}'")) {
-        $config['perm'] = ($config['perm'] < 1) ? $usergroup['perm'] : $config['perm'];
-        $config['attachextensions'] = ($config['attachextensions'] < 0) ? $usergroup['attachextensions'] : $config['attachextensions'];
-        $config['maxattachsize'] = ($config['maxattachsize'] < 0) ? $usergroup['maxattachsize'] * 1024 * 1024 : $config['maxattachsize'] * 1024 * 1024;
-
-       /* //如果用户存储功能未开启,用户空间大小为-1
-        if (isset($setting['usermemoryOn']) && !$setting['usermemoryOn']) {
-
-            $config['maxspacesize'] = -1;
-
-        } else {*/
+    if ($space['uid']) {
+        $config = DB::fetch_first("select usesize,attachextensions,maxattachsize,addsize,buysize,perm,userspace from " . DB::table('user_field') . " where uid='{$uid}'");
+        if($config) {
+            $config['perm'] = ($config['perm'] < 1) ? $usergroup['perm'] : $config['perm'];
+            $config['attachextensions'] = ($config['attachextensions'] < 0) ? $usergroup['attachextensions'] : $config['attachextensions'];
+            $config['maxattachsize'] = ($config['maxattachsize'] < 0) ? $usergroup['maxattachsize'] * 1024 * 1024 : $config['maxattachsize'] * 1024 * 1024;
             //判断是否有用户独享空间设置
             if ($config['userspace'] > 0 || $config['userspace'] == -1) {
                 $config['maxspacesize'] = ($config['userspace'] > 0) ? $config['userspace'] * 1024 * 1024 : $config['userspace'];
-
             } elseif ($config['userspace'] == 0) {//如果未设置用户空间
-
-               /* //判断是否为指定用户开启用户存储
-                $spaceon = isset($setting['mermoryusersetting']) ? $setting['mermoryusersetting'] : '';
-                $memorySpace = isset($setting['memorySpace']) ? $setting['memorySpace'] : '';
-
-                //指定用户时,并指定用户空间
-                if ($spaceon == 'appoint' && $memorySpace != 0) {
-
-                    $usersarr = explode(',', $setting['memoryorgusers']);
-                    $uesrs = array();
-                    foreach ($usersarr as $v) {
-                        //群组id
-                        if (preg_match('/\d+/', $v)) {
-                            foreach (C::t('organization_user')->fetch_user_byorgid($v) as $val) {
-                                $users[] = $val['uid'];
-                            }
-                        } elseif ($v == 'other') {
-                            foreach (C::t('user')->fetch_uid_by_groupid(9) as $val) {
-                                $users[] = $val['uid'];
-                            }
-                        } elseif (preg_match('/uid_\d+/', $v)) {
-                            $users[] = preg_replace('/uid_/', '');
-                        }
-
-                    }
-                    $users = array_unique($users);
-                    //判断用户是否在指定用户中
-                    if (in_array($uid, $users)) {
-                        $config['maxspacesize'] = ($memorySpace > 0) ? $memorySpace * 1024 * 1024 : $memorySpace;
-                    }else{
-                        $config['maxspacesize'] = -1;
-                    }
-                } else {*///如果未指定开启存储用户或设置指定用户空间为0
-                    //用户组空间(去掉额外空间和购买空间)
-                    if ($usergroup['maxspacesize'] == 0) {
-                        $config['maxspacesize'] = 0;
-                    } elseif ($usergroup['maxspacesize'] < 0) {
-                        /*if(($config['addsize']+$config['buysize'])>0){
-                                $config['maxspacesize']=($config['addsize']+$config['buysize'])*1024*1024;
-                            }else{*/
-                        $config['maxspacesize'] = -1;
-                        //}
-                    } else {
-                        //$config['maxspacesize']=($usergroup['maxspacesize']+$config['addsize']+$config['buysize'])*1024*1024;
-                        $config['maxspacesize'] = $usergroup['maxspacesize'] * 1024 * 1024;
-                    }
-               // }
+                //用户组空间(去掉额外空间和购买空间)
+                if ($usergroup['maxspacesize'] == 0) {
+                    $config['maxspacesize'] = 0;
+                } elseif ($usergroup['maxspacesize'] < 0) {
+                    $config['maxspacesize'] = -1;
+                } else {
+                    $config['maxspacesize'] = $usergroup['maxspacesize'] * 1024 * 1024;
+                }
             }
-       // }
+        } else {//用户UID存在，但用户信息不存在时自动创建
+            $config = dzz_userconfig_init();
+        }
         $space = array_merge($space, $config);
+    } else {
+        $space['maxattachsize'] = $usergroup['maxattachsize'] * 1024 * 1024;
+        $space['maxspacesize'] = $usergroup['maxspacesize'] * 1024 * 1024;
+        $space['attachextensions'] = $usergroup['attachextensions'];
     }
     $space['fusesize'] = formatsize($space['usesize']);
     if ($space['maxspacesize'] > 0) {
@@ -2394,22 +1992,18 @@ function dzzgetspace($uid)
         $space['fmaxspacesize'] = '未分配空间';
     }
     $space['attachextensions'] = str_replace(' ', '', $space['attachextensions']);
-    $typefid = array();
-
-    $space['typefid'] = C::t('folder')->fetch_typefid_by_uid($uid);
     $space['maxChunkSize'] = $_G['setting']['maxChunkSize'];
+    unset($space['password']);
+    unset($space['salt']);
     return $space;
-
 }
 
-function microtime_float()
-{
+function microtime_float() {
     list($usec, $sec) = explode(' ', microtime());
     return (floatval($usec) + floatval($sec));
 }
 
-function dzz_file_get_contents($source, $redirect = 0, $proxy = '')
-{
+function dzz_file_get_contents($source, $redirect = 0, $proxy = '') {
     if (function_exists('curl_init') !== false) {
         return curl_file_get_contents($source, $redirect, $proxy);
     } else {
@@ -2417,8 +2011,7 @@ function dzz_file_get_contents($source, $redirect = 0, $proxy = '')
     }
 }
 
-function curl_file_get_contents($durl, $redirect = 0, $proxy = '')
-{
+function curl_file_get_contents($durl, $redirect = 0, $proxy = '') {
     global $_SERVER;
     set_time_limit(0);
     $ch = curl_init();
@@ -2441,8 +2034,7 @@ function curl_file_get_contents($durl, $redirect = 0, $proxy = '')
     return $r;
 }
 
-function curl_redir_exec($ch, $debug = "")
-{
+function curl_redir_exec($ch, $debug = "") {
     static $curl_loops = 0;
     static $curl_max_loops = 20;
     set_time_limit(0);
@@ -2483,10 +2075,9 @@ function curl_redir_exec($ch, $debug = "")
     }
 }
 
-function ico_png($source, $target, $proxy = '')
-{
+function ico_png($source, $target, $proxy = '') {
     $ext = strtolower(substr(strrchr($source, '.'), 1, 10));
-    $imgexts = array('png', 'jpg', 'jpeg', 'gif');
+    $imgexts = array('png', 'jpg', 'jpeg', 'gif', 'webp');
     if (in_array($ext, $imgexts)) {
         exit($source);
         $data = dzz_file_get_contents($source, 0, $proxy);
@@ -2515,8 +2106,7 @@ function ico_png($source, $target, $proxy = '')
     }
 }
 
-function check_remote_file_exists($url, $proxy = '')
-{
+function check_remote_file_exists($url, $proxy = '') {
     set_time_limit(0);
     $u = parse_url($url);
     if (!$u || !isset($u['host'])) return false;
@@ -2558,8 +2148,7 @@ function check_remote_file_exists($url, $proxy = '')
     }
 }
 
-function imagetolocal($source, $dir = 'appimg', $target = '')
-{
+function imagetolocal($source, $dir = 'appimg', $target = '') {
     global $_G;
     if (empty($source)) return false;
     if (!$data = dzz_file_get_contents($source)) {
@@ -2569,7 +2158,7 @@ function imagetolocal($source, $dir = 'appimg', $target = '')
         $target = '';
     }
     if (!$target) {
-        $imageext = array('jpg', 'jpeg', 'png', 'gif');
+        $imageext = array('jpg', 'jpeg', 'png', 'gif', 'webp');
         $ext = strtolower(substr(strrchr($source, '.'), 1, 10));
         if (!in_array($ext, $imageext)) return false;
         $subdir = $subdir1 = $subdir2 = '';
@@ -2592,37 +2181,7 @@ function imagetolocal($source, $dir = 'appimg', $target = '')
     } else return false;
 }
 
-function image_to_icon($source, $target, $domain)
-{
-    global $_G;
-    if (!$data = dzz_file_get_contents($source)) {
-        return false;
-    }
-    if (!$target) {
-        $imageext = array('jpg', 'jpeg', 'png', 'gif');
-        $ext = str_replace("/\?.+?/i", '', strtolower(substr(strrchr($source, '.'), 1, 10)));
-        if (!in_array($ext, $imageext)) $ext = 'jpg';
-        $subdir = $subdir1 = $subdir2 = '';
-        $subdir1 = date('Ym');
-        $subdir2 = date('d');
-        $subdir = $subdir1 . '/' . $subdir2 . '/';
-        $target = 'icon/' . $subdir . '' . $domain . '_' . strtolower(random(8)) . '.' . $ext;
-        $target_attach = $_G['setting']['attachdir'] . $target;
-    } else {
-        $target_attach = $_G['setting']['attachdir'] . $target;
-    }
-    $targetpath = dirname($target_attach);
-    dmkdir($targetpath);
-    if (file_put_contents($target_attach, $data)) {
-        return $target;
-    } else {
-        return false;
-    }
-}
-
-
-function getTxtAttachByMd5($message, $filename_title, $ext)
-{
+function getTxtAttachByMd5($message, $filename_title, $ext) {
     global $_G;
     @set_time_limit(0);
     $filename = date('His') . '' . strtolower(random(16));
@@ -2647,14 +2206,14 @@ function getTxtAttachByMd5($message, $filename_title, $ext)
 
     if (is_resource($message)) {
         while (!feof($message)) {
-            if (!file_put_contents($_G['setting']['attachdir'] . $target . $filename . '.' . ($unrun ? 'dzz' : $ext), fread($message, 8192), FILE_APPEND)) {
+            if (file_put_contents($_G['setting']['attachdir'] . $target . $filename . '.' . ($unrun ? 'dzz' : $ext), fread($message, 8192), FILE_APPEND) === false) {
                 return false;
             }
         }
         fclose($message);
     } else {
         if ($message == '') $message = ' ';
-        if (!file_put_contents($_G['setting']['attachdir'] . $target . $filename . '.' . ($unrun ? 'dzz' : $ext), $message)) {
+        if (file_put_contents($_G['setting']['attachdir'] . $target . $filename . '.' . ($unrun ? 'dzz' : $ext), $message) === false) {
             return false;
         }
     }
@@ -2696,9 +2255,7 @@ function getTxtAttachByMd5($message, $filename_title, $ext)
     return $attach;
 }
 
-
-function checkCopy($icoid = 0, $sourcetype = '', $iscut = 0, $obz, $tbz)
-{
+function checkCopy($icoid = 0, $sourcetype = '', $iscut = 0, $obz, $tbz) {
     global $_G;
     $copy = 1;
     if ($sourcetype == 'uid') {
@@ -2716,58 +2273,7 @@ function checkCopy($icoid = 0, $sourcetype = '', $iscut = 0, $obz, $tbz)
     return $copy;
 }
 
-function delete_icoid_from_container($icoid, $pfid)
-{
-    global $_G;
-    $typefid = C::t('folder')->fetch_typefid_by_uid($_G['uid']);
-    if ($pfid == $typefid['dock']) {
-        $docklist = DB::result_first("select docklist from " . DB::table('user_field') . " where uid='{$_G[uid]}'");
-        $docklist = $docklist ? explode(',', $docklist) : array();
-        foreach ($docklist as $key => $value) {
-            if ($value == $icoid) {
-                unset($docklist[$key]);
-            }
-        }
-        C::t('user_field')->update($_G['uid'], array('docklist' => implode(',', $docklist)));
-    } elseif ($pfid == $typefid['desktop']) {
-
-        $icos = DB::result_first("select screenlist from " . DB::table('user_field') . " where uid='{$_G[uid]}'");
-        $icos = $icos ? explode(',', $icos) : array();
-        foreach ($icos as $key => $value) {
-            if ($value == $icoid) {
-                unset($icos[$key]);
-            }
-        }
-        C::t('user_field')->update($_G['uid'], array('screenlist' => implode(',', $icos)));
-    }
-}
-
-function dzz_update_source($type, $oid, $data, $istype = false)
-{
-    $idtypearr = array('lid', 'vid', 'mid', 'qid', 'picid', 'did', 'fid');
-    $typearr = array('link', 'video', 'music', 'attach', 'image', 'document', 'folder');
-    $table = '';
-    $idtype = '';
-    $pre = 'source_';
-    if ($isidtype) {
-        if (in_array($type, $idtypearr)) {
-            if ($type == 'fid') $pre = '';
-            $table = '' . $pre . str_replace($idtypearr, $typearr, $type);
-            $idtype = $type;
-        }
-    } else {
-        if ($type == 'folder') $pre = '';
-        if (in_array($type, $typearr)) {
-            $table = '' . $pre . $type;
-            $idtype = str_replace($typearr, $idtypearr, $type);
-        }
-    }
-    if ($table) return C::t($table)->update($oid, $data);
-    else return false;
-}
-
-function getAttachUrl($attach, $absolute = false)
-{
+function getAttachUrl($attach, $absolute = false) {
     global $_G;
     $attachment = '';
     $bz = io_remote::getBzByRemoteid($attach['remote']);
@@ -2786,8 +2292,7 @@ function getAttachUrl($attach, $absolute = false)
 
 }
 
-function getBzByPath($path)
-{
+function getBzByPath($path) {
     $bzarr = explode(':', $path);
     $allowbz = C::t('connect')->fetch_all_bz();
     if (strpos($path, 'dzz::') !== false) {
@@ -2803,8 +2308,7 @@ function getBzByPath($path)
     }
 }
 
-function getDzzPath($attach)
-{
+function getDzzPath($attach) {
     global $_G;
     $url = '';
     $bz = io_remote::getBzByRemoteid($attach['remote']);
@@ -2816,8 +2320,12 @@ function getDzzPath($attach)
     return $url;
 }
 
-function geticonfromext($ext, $type='')
-{
+function geticonfromext($ext, $type = '') {
+    static $geticonfromext = array();
+    $cache_key = $ext . '|' . $type;
+    if (isset($geticonfromext[$cache_key])) {
+        return $geticonfromext[$cache_key];
+    }
     global $_G;
     $img = 'dzz/images/extimg/' . strtolower($ext) . '.png';
     if (!is_file(DZZ_ROOT . $img)) {
@@ -2832,7 +2340,7 @@ function geticonfromext($ext, $type='')
                 $img = 'dzz/images/extimg/document.png';
                 break;
             case 'folder':
-                $img = '';
+                $img = 'dzz/images/default/system/folder.png';
                 break;
             case 'link':
                 $img = 'dzz/images/extimg/link.png';
@@ -2847,11 +2355,11 @@ function geticonfromext($ext, $type='')
                 $img = 'dzz/images/extimg/unknow.png';
         }
     }
+    $geticonfromext[$cache_key] = $img;
     return $img;
 }
 
-function getUrlIcon($link)
-{
+function getUrlIcon($link) {
     global $_G;
     $rarr = array();
     $parse_url = parse_url($link);
@@ -2886,80 +2394,11 @@ function getUrlIcon($link)
     return array('img' => 'dzz/images/default/e.png', 'did' => 0);
 }
 
-function addtoconfig($icoarr, $ticoid = 0)
-{
+function addtoconfig($icoarr, $ticoid = 0) {
     global $_G, $space;
     $oposition = 10000;
     $icoid = $icoarr['rid'];
     if ($folder = C::t('folder')->fetch($icoarr['pfid'])) {
-        if ($folder['flag'] == 'dock') {
-            if ($docklistarr = C::t('user_field')->fetch($_G['uid'])) {
-                $docklist = $docklistarr['docklist'] ? explode(',', $docklistarr['docklist']) : array();
-                if (in_array($icoid, $docklist)) {//已经存在则先删除
-                    foreach ($docklist as $key => $id) {
-                        if (intval($id) < 0 || $id == $icoid) {
-                            unset($docklist[$key]);
-                            $oposition = $key;
-                        }
-                    }
-                }
-                if ($ticoid && in_array($ticoid, $docklist)) {
-                    $temp = array();
-                    foreach ($docklist as $key => $id) {
-                        if ($id == $ticoid) {
-                            if ($oposition > $key) {
-                                $temp[] = $icoid;
-                                $temp[] = $id;
-                            } else {
-                                $temp[] = $id;
-                                $temp[] = $icoid;
-                            }
-                        } else {
-                            $temp[] = $id;
-                        }
-                    }
-                    $docklist = $temp;
-                } else {
-                    $docklist[] = $icoid;
-                }
-                C::t('user_field')->update($_G['uid'], array('docklist' => trim(implode(',', $docklist), ',')));
-            }
-
-
-        } elseif ($folder['flag'] == 'desktop') {
-
-            if ($nav = C::t('user_field')->fetch($_G['uid'])) {
-                $icos = $nav['screenlist'] ? explode(',', $nav['screenlist']) : array();
-                if (in_array($icoid, $icos)) {//已经存在则先删除
-                    foreach ($icos as $key => $id) {
-                        if (intval($id) < 0 || $id == $icoid) {
-                            unset($icos[$key]);
-                            $oposition = $key;
-                        }
-                    }
-                }
-                if ($ticoid && in_array($ticoid, $icos)) {
-                    $temp = array();
-                    foreach ($icos as $key => $id) {
-                        if ($id == $ticoid) {
-                            if ($oposition > $key) {
-                                $temp[] = $icoid;
-                                $temp[] = $id;
-                            } else {
-                                $temp[] = $id;
-                                $temp[] = $icoid;
-                            }
-                        } else {
-                            $temp[] = $id;
-                        }
-                    }
-                    $icos = $temp;
-                } else {
-                    $icos[] = $icoid;
-                }
-                C::t('user_field')->update($_G['uid'], array('screenlist' => implode(',', $icos)));
-            }
-        }
         if ($icoarr['type'] == 'folder' && $icoarr['flag'] == '') {
             C::t('folder')->update($icoarr['oid'], array('pfid' => $folder['fid'], 'gid' => $folder['gid']));
         }
@@ -2967,13 +2406,11 @@ function addtoconfig($icoarr, $ticoid = 0)
     return true;
 }
 
-function is_upload_files($source)
-{
+function is_upload_files($source) {
     return $source && ($source != 'none') && (is_uploaded_file($source) || is_uploaded_file(str_replace('\\\\', '\\', $source)));
 }
 
-function save_to_local($source, $target)
-{
+function save_to_local($source, $target) {
     $targetpath = dirname($target);
     dmkdir($targetpath);
     if (!is_upload_files($source)) {
@@ -2999,9 +2436,7 @@ function save_to_local($source, $target)
     return $succeed;
 }
 
-
-function uploadtolocal($upload, $dir = 'appimg', $target = '', $exts = array('jpg', 'jpeg', 'png', 'gif'))
-{
+function uploadtolocal($upload, $dir = 'appimg', $target = '', $exts = array('jpg', 'jpeg', 'png', 'gif', 'webp')) {
     global $_G;
     if ($target == 'dzz/images/default/icodefault.png' || $target == 'dzz/images/default/widgetdefault.png' || preg_match("/^(http|ftp|https|mms)\:\/\/(.+?)/i", $target)) {
         $target = '';
@@ -3027,62 +2462,36 @@ function uploadtolocal($upload, $dir = 'appimg', $target = '', $exts = array('jp
     }
 }
 
-function upload_to_icon($upload, $target, $domain='')
-{
-    global $_G;
-    $source = $upload['tmp_name'];
-    if (!$target) {
-        $imageext = array('jpg', 'jpeg', 'png', 'gif');
-        $ext = strtolower(substr(strrchr($upload['name'], '.'), 1, 10));
-        if (!in_array($ext, $imageext)) return false;
-        $subdir = $subdir1 = $subdir2 = '';
-        $subdir1 = date('Ym');
-        $subdir2 = date('d');
-        $subdir = $subdir1 . '/' . $subdir2 . '/';
-        $target = 'icon/' . $subdir . '' . $domain . '_' . strtolower(random(8)) . '.' . $ext;
-        $target_attach = $_G['setting']['attachdir'] . $target;
+/**
+ * @param string $type 目标权限类型，默认'folder'（文件夹权限），可选'control'（控制类权限）
+ * @return array 对应类型的权限列表（结构：[标题, 数值, 图标]）
+ */
+function get_permsarray($type = 'folder') {
+    $titles = perm_binPerm::getPowerTitle();
+    $powers = perm_binPerm::getPowerArr();
+    $icos = perm_binPerm::getPowerIcos();
+    $types = perm_binPerm::getPowerType();
+    if ($type == 'document') {
+        $basetype = 'folder';
     } else {
-        $target_attach = $_G['setting']['attachdir'] . $target;
+        $basetype = $type;
     }
-    if (save_to_local($source, $target_attach)) {
-        return $target;
-    } else {
-        return false;
+    $perms = array();
+    foreach ($titles as $key => $title) {
+        if (!isset($types[$key]) || $types[$key] != $basetype) {
+            continue;
+        }
+        $perms[$key] = array($title,$powers[$key],$icos[$key]);
     }
-}
-
-function dzz_app_pic_save($FILE, $dir = 'appimg')
-{
-    global $_G;
-    $imageext = array('jpg', 'jpeg', 'png', 'gif');
-    $ext = strtolower(substr(strrchr($FILE['name'], '.'), 1, 10));
-    if (!in_array($ext, $imageext)) return '文件格式不允许';
-    $subdir = $subdir1 = $subdir2 = '';
-    $subdir1 = date('Ym');
-    $subdir2 = date('d');
-    $subdir = $subdir1 . '/' . $subdir2 . '/';
-    $target = $dir . '/' . $subdir;
-    $filename = date('His') . '' . strtolower(random(16));
-    if (!$attach = io_dzz::UploadSave($FILE)) {
-        return '应用图片上传失败';
+    if ($type == 'document') {
+        // 文档场景：移除目录专属权限（上传、新建文件夹等）
+        $removekeys = array('upload', 'folder');
+        foreach ($removekeys as $key) {
+            if (isset($perms[$key])) {
+                unset($perms[$key]);
+            }
+        }
     }
-    $setarr = array(
-        'uid' => $_G['uid'],
-        'username' => $_G['username'],
-        'dateline' => $_G['timestamp'],
-        'aid' => $attach['aid'],
-    );
-    if ($setarr['picid'] = DB::insert('app_pic', $setarr, 1)) {
-        C::t('attachment')->addcopy_by_aid($attach['aid']);
-        return $setarr;
-    }
-    return false;
-}
-
-function get_permsarray()
-{
-    $perms = array_merge_recursive(perm_binPerm::getPowerTitle(), perm_binPerm::getPowerArr(),perm_binPerm::getPowerIcos());//获取所有权限
-    unset($perms['flag']);
     return $perms;
 }
 
@@ -3091,8 +2500,7 @@ function get_permsarray()
  * @param mixed $mix 变量
  * @return string
  */
-function to_guid_string($mix)
-{
+function to_guid_string($mix) {
     if (is_object($mix)) {
         return spl_object_hash($mix);
     } elseif (is_resource($mix)) {
@@ -3110,8 +2518,7 @@ function to_guid_string($mix)
  * @param integer $type 转换类型
  * @return string
  */
-function parse_name($name, $type = 0)
-{
+function parse_name($name, $type = 0) {
     if ($type) {
         return ucfirst(preg_replace_callback('/_([a-zA-Z])/', function ($match) {
             return strtoupper($match[1]);
@@ -3122,156 +2529,114 @@ function parse_name($name, $type = 0)
 }
 
 //增加函数处理网盘权限判断
-function get_resources_some_setting()
-{
+function get_resources_some_setting() {
+    static $resources_some_setting = null;
+    if ($resources_some_setting !== null) {
+        return $resources_some_setting;
+    }
     global $_G;
     $setting = $_G['setting'];
     $data = array(
         'useronperm' => false,
         'orgonperm' => false,
         'grouponperm' => false,
+        'cloudperm' => false,
         'fileVersion' => true,
         'fileVersionNumber' => 0,
         'userallowonperm' => array(),
         'left_topcontent' => true,
-        'allownewgroup'=>false,
-        'allownewcat'=>false,
-        'finallydelete'=>false
+        'allownewgroup' => false,
+        'allownewcat' => false,
+        'finallydelete' => false
     );
-    if (!isset($setting['explorer_usermemoryOn'])) {
+    $getUsersByRule = function($ruleStr) use ($_G) {
+        $users = [];
+        $orgUserModel = C::t('organization_user');
+        $hasOrg = null; // 缓存当前用户是否属于任何组织的判断结果
+        foreach (explode(',', $ruleStr) as $v) {
+            if (preg_match('/^\d+$/', $v)) {
+                // 组织ID：批量获取该组织下所有用户
+                foreach ($orgUserModel->get_all_user_byorgid($v,false) as $val) {
+                    $users[] = $val['uid'];
+                }
+            } elseif ($v == 'other') {
+                 // 其他用户：仅当用户无组织时添加（直接查询数据库记录数）
+                if ($hasOrg === null) {
+                    $hasOrg = DB::result_first("SELECT COUNT(*) FROM %t WHERE uid = %d",['organization_user', $_G['uid']]) > 0;
+                }
+                if (!$hasOrg) {
+                    $users[] = $_G['uid'];
+                }
+            } elseif (preg_match('/^uid_(\d+)$/', $v, $m)) {
+                // 直接指定用户ID
+                $users[] = $m[1];
+            }
+        }
+        return array_unique($users);
+    };
+    // 处理用户存储权限
+    if (!isset($setting['explorer_usermemoryOn']) || ($setting['explorer_usermemoryOn'] == 1 && ($setting['explorer_mermoryusersetting'] ?? '') != 'appoint')) {//未指定用户时
         $data['useronperm'] = true;
-    } else {
-        //用户存储开启
-        if ($setting['explorer_usermemoryOn'] == 1) {
-            $spaceon = isset($setting['explorer_mermoryusersetting']) ? $setting['explorer_mermoryusersetting'] : '';
-            if ($spaceon == 'appoint') {//指定用户时
-                $usersarr = explode(',', $setting['explorer_memoryorgusers']);
-                $uesrs = array();
-                foreach ($usersarr as $v) {
-                    //群组id
-                    if (preg_match('/^\d+$/', $v)) {
-                        foreach (C::t('organization_user')->get_all_user_byorgid($v) as $val) {
-                            $users[] = $val['uid'];
-                        }
-                    } elseif ($v == 'other') {
-                        foreach (C::t('user')->fetch_uid_by_groupid(9) as $val) {
-                            $users[] = $val['uid'];
-                        }
-                    } elseif (preg_match('/^uid_\d+$/', $v)) {
-                        $users[] = preg_replace('/uid_/', '',$v);
-                    }
-
-                }
-                $users = array_unique($users);
-                $data['userallowonperm'] = $users;
-                if (in_array($_G['uid'], $data['userallowonperm'])) {
-                    $data['useronperm'] = true;
-                }
-
-            } else {//未指定用户时
-                $data['useronperm'] = true;
-            }
-        }
+    } elseif ($setting['explorer_usermemoryOn'] == 1) {//指定用户时
+        $data['userallowonperm'] = $getUsersByRule($setting['explorer_memoryorgusers'] ?? '');
+        $data['useronperm'] = in_array($_G['uid'], $data['userallowonperm']);
     }
+    // 处理网盘挂载权限
+    if (($setting['explorer_mermorycloudsetting'] ?? '') != 'appoint') {//未指定用户时
+        $data['cloudperm'] = true;
+    } else {//指定用户时
+        $data['cloudallowonperm'] = $getUsersByRule($setting['explorer_memorycloudusers'] ?? '');
+        $data['cloudperm'] = in_array($_G['uid'], $data['cloudallowonperm']);
+    }
+    // 处理文件版本
+    $data['fileVersion'] = !isset($setting['fileVersion']) || $setting['fileVersion'] == 1;
+    $data['fileVersionNumber'] = isset($setting['fileVersionNumber']) ? (int)$setting['fileVersionNumber'] : 0;
 
-    if (!isset($setting['fileVersion']) || (isset($setting['fileVersion']) && $setting['fileVersion'] == 1)) {
-        $data['fileVersion'] = true;
-    } else {
-        $data['fileVersion'] = false;
-    }
-    if (isset($setting['fileVersionNumber']) && $setting['fileVersionNumber']) {
-        $data['fileVersionNumber'] = $setting['fileVersionNumber'];
-    }
+    // 处理组织和群组权限
+    $data['orgonperm'] = !isset($setting['explorer_organizationOn']) || $setting['explorer_organizationOn'] == 1;
+    $data['grouponperm'] = !isset($setting['explorer_groupOn']) || $setting['explorer_groupOn'] == 1;
 
-    if ((isset($setting['explorer_organizationOn']) && $setting['explorer_organizationOn'] == 1) || !isset($setting['explorer_organizationOn'])) {
-        $data['orgonperm'] = true;
-    }
+    // 左侧顶部内容显示控制
+    $data['left_topcontent'] = $data['grouponperm'] || $data['useronperm'] || $data['orgonperm'] || $data['cloudperm'];
 
-    if ((isset($setting['explorer_groupOn']) && $setting['explorer_groupOn'] == 1) || !isset($setting['explorer_groupOn'])) {
-        $data['grouponperm'] = true;
-    }
-
-    if (!$data['grouponperm'] && !$data['useronperm'] && !$data['orgonperm']) {
-        $data['left_topcontent'] = false;
-    }
-    if(!isset($setting['explorer_groupcreate'])){
+    // 处理新建群组权限
+    if (!isset($setting['explorer_groupcreate']) || ($setting['explorer_groupcreate'] == 1 && ($setting['explorer_mermorygroupsetting'] ?? '') != 'appoint')) {
         $data['allownewgroup'] = true;
-    }else{
-        if ($setting['explorer_groupcreate'] == 1) {
-            $groupcreateon = isset($setting['explorer_mermorygroupsetting']) ? $setting['explorer_mermorygroupsetting'] : '';
-            if ($groupcreateon == 'appoint') {//指定用户时
-                $usersarr = explode(',', $setting['explorer_memorygroupusers']);
-                $uesrs = array();
-                foreach ($usersarr as $v) {
-                    //群组id
-                    if (preg_match('/^\d+$/', $v)) {
-                        foreach (C::t('organization_user')->get_all_user_byorgid($v) as $val) {
-                            $users[] = $val['uid'];
-                        }
-                    } elseif ($v == 'other') {
-                        foreach (C::t('user')->fetch_uid_by_groupid(9) as $val) {
-                            $users[] = $val['uid'];
-                        }
-                    } elseif (preg_match('/^uid_\d+$/', $v)) {
-                        $users[] = preg_replace('/uid_/', '',$v);
-                    }
+    } elseif ($setting['explorer_groupcreate'] == 1) {
+        $data['userallowgroupcreate'] = $getUsersByRule($setting['explorer_memorygroupusers'] ?? '');
+        $data['allownewgroup'] = in_array($_G['uid'], $data['userallowgroupcreate']);
+    }
 
-                }
-                $users = array_unique($users);
-                $data['userallowgroupcreate'] = $users;
-                if (in_array($_G['uid'], $data['userallowgroupcreate'])) {
-                    $data['allownewgroup'] = true;
-                }
+    // 处理新建分类权限
+    $data['allownewcat'] = !isset($setting['explorer_catcreate']) || $setting['explorer_catcreate'] == 1;
 
-            } else {//未指定用户时
-                $data['allownewgroup'] = true;
-            }
-        }
-    }
-    if(!isset($setting['explorer_catcreate'])){
-        $data['allownewcat'] = true;
-    }else{
-        $data['allownewcat'] =  ($setting['explorer_catcreate'] == 1) ? true:false;
-    }
-    if(!isset($setting['explorer_finallydelete']) || $setting['explorer_finallydelete'] < 0){
-        $data['finallydelete'] = false;
-    }else{
-        $data['finallydelete'] = intval($setting['explorer_finallydelete']);
-    }
+    // 处理彻底删除设置
+    $data['finallydelete'] = isset($setting['explorer_finallydelete']) && $setting['explorer_finallydelete'] >= 0 ? (int)$setting['explorer_finallydelete'] : false;
+    $resources_some_setting = $data;
     return $data;
 }
 
 //增加字符串截取函数
-function new_strsubstr($string,$length=1,$dot ='...')
-{
-    if(strlen($string) <= $length )
-    {
+function new_strsubstr($string, $length = 1, $dot = '...') {
+    if (strlen($string) <= $length) {
         return $string;
-    }
-    else
-    {
+    } else {
         $i = 0;
-        while ($i < $length)
-        {
-            $stringTMP = substr($string,$i,1);
-            if ( ord($stringTMP) >=224 )
-            {
-                $stringTMP = substr($string,$i,3);
+        while ($i < $length) {
+            $stringTMP = substr($string, $i, 1);
+            if (ord($stringTMP) >= 224) {
+                $stringTMP = substr($string, $i, 3);
                 $i = $i + 3;
-            }
-            elseif( ord($stringTMP) >=192 )
-            {
-                $stringTMP = substr($string,$i,2);
+            } elseif (ord($stringTMP) >= 192) {
+                $stringTMP = substr($string, $i, 2);
                 $i = $i + 2;
-            }
-            else
-            {
+            } else {
                 $i = $i + 1;
             }
             $stringLast[] = $stringTMP;
         }
-        $stringLast = implode("",$stringLast);
-        return $stringLast.$dot;
+        $stringLast = implode("", $stringLast);
+        return $stringLast . $dot;
     }
 }
 
@@ -3279,289 +2644,344 @@ function new_strsubstr($string,$length=1,$dot ='...')
  * 获取需要更新的应用数量
  * @return string
  */
-function get_update_app_num()
-{
+function get_update_app_num() {
     $map = array();
     $map["upgrade_version"] = array("neq", "");
     $map["available"] = array("gt", "0");
-    $num = DB::result_first("select COUNT(*) from %t where `available`>0 and upgrade_version!=''",array('app_market'));// C::tp_t('app_market')->where($map)->count("*");
+    $num = DB::result_first("select COUNT(*) from %t where `available`>0 and upgrade_version!=''", array('app_market'));// C::tp_t('app_market')->where($map)->count("*");
     return $num;
 }
 
-function getimportdata($name = '', $addslashes = 0, $ignoreerror = 0,$data='') {
-	global $_G;
+function getimportdata($name = '', $addslashes = 0, $ignoreerror = 0, $data = '') {
+    global $_G;
 
-	if(empty($data)){
-		if($_GET['importtype'] == 'file') {
-			$data = @implode('', file($_FILES['importfile']['tmp_name']));
-			@unlink($_FILES['importfile']['tmp_name']);
-		} else {
-			if(!empty($_GET['importtxt'])) {
-				$data = $_GET['importtxt'];
-			} else {
-				$data = $GLOBALS['importtxt'];
+    if (empty($data)) {
+        if ($_GET['importtype'] == 'file') {
+            if ($_FILES['importfile']['error'] !== UPLOAD_ERR_OK) {
+                $error = $_FILES['importfile']['error'];
+                switch ($error) {
+                    case UPLOAD_ERR_INI_SIZE:
+                        $msg = "上传文件超过php.ini限制";
+                        break;
+                    case UPLOAD_ERR_FORM_SIZE:
+                        $msg = "上传文件超过表单限制";
+                        break;
+                    case UPLOAD_ERR_PARTIAL:
+                        $msg = "文件仅部分上传";
+                        break;
+                    case UPLOAD_ERR_NO_FILE:
+                        $msg = "未上传文件";
+                        break;
+                    default:
+                        $msg = "上传失败，错误码: $error";
+                }
+                if (!$ignoreerror) {
+                    showmessage("文件上传错误: $msg");
+                }
+            } else {
+                $data = @implode('', file($_FILES['importfile']['tmp_name']));
+                @unlink($_FILES['importfile']['tmp_name']);
+            }
+        } else {
+            if (!empty($_GET['importtxt'])) {
+                $data = $_GET['importtxt'];
+            } else {
+                $data = $GLOBALS['importtxt'];
 
-			}
-		}
-	}
-	require_once libfile('class/xml');
+            }
+        }
+    }
+    require_once libfile('class/xml');
 
-	$xmldata = xml2array($data);
-    $_attributes=xmlattribute($data); //item 属性获取 
-	if(!is_array($xmldata) || !$xmldata) {
-		if(!$ignoreerror) {
-			showmessage('data_import_error', dreferer());
-		} else {
-			return array();
-		}
-	} else {
-		if($name && $name != $xmldata['Title']) {
-			if(!$ignoreerror) {
-				showmessage('function_admin_error');
-			} else {
-				return array();
-			}
-		}
-		$data = exportarray($xmldata['Data'], 0);
-	}
-	if($addslashes) {
-		$data = daddslashes($data, 1);
-	}
-    if($data && $_attributes) $data["_attributes"]=$_attributes["Data"];
-	return $data;
+    $xmldata = xml2array($data);
+    $_attributes = xmlattribute($data); //item 属性获取
+    if (!is_array($xmldata) || !$xmldata) {
+        if (!$ignoreerror) {
+            showmessage('data_import_error', dreferer());
+        } else {
+            return array();
+        }
+    } else {
+        if ($name && $name != $xmldata['Title']) {
+            if (!$ignoreerror) {
+                showmessage('function_admin_error');
+            } else {
+                return array();
+            }
+        }
+        $data = exportarray($xmldata['Data'], 0);
+    }
+    if ($addslashes) {
+        $data = daddslashes($data, 1);
+    }
+    if ($data && $_attributes) $data["_attributes"] = $_attributes["Data"];
+    return $data;
 }
 
-function exportarray($array, $method='') {
-	$tmp = $array;
-	if($method) {
-		foreach($array as $k => $v) {
-			if(is_array($v)) {
-				$tmp[$k] = exportarray($v, 1);
-			} else {
-				$uv = unserialize($v);
-				if($uv && is_array($uv)) {
-					$tmp['__'.$k] = exportarray($uv, 1);
-					unset($tmp[$k]);
-				} else {
-					$tmp[$k] = $v;
-				}
-			}
-		}
-	} else {
-		foreach($array as $k => $v) {
-			if(is_array($v)) {
-				if(substr($k, 0, 2) == '__') {
-					$tmp[substr($k, 2)] = serialize(exportarray($v, 0));
-					unset($tmp[$k]);
-				} else {
-					$tmp[$k] = exportarray($v, 0);
-				}
-			} else {
-				$tmp[$k] = $v;
-			}
-		}
-	}
-	return $tmp;
+function exportarray($array, $method = '') {
+    $tmp = $array;
+    if ($method) {
+        foreach ($array as $k => $v) {
+            if (is_array($v)) {
+                $tmp[$k] = exportarray($v, 1);
+            } else {
+                $uv = unserialize($v);
+                if ($uv && is_array($uv)) {
+                    $tmp['__' . $k] = exportarray($uv, 1);
+                    unset($tmp[$k]);
+                } else {
+                    $tmp[$k] = $v;
+                }
+            }
+        }
+    } else {
+        foreach ($array as $k => $v) {
+            if (is_array($v)) {
+                if (substr($k, 0, 2) == '__') {
+                    $tmp[substr($k, 2)] = serialize(exportarray($v, 0));
+                    unset($tmp[$k]);
+                } else {
+                    $tmp[$k] = exportarray($v, 0);
+                }
+            } else {
+                $tmp[$k] = $v;
+            }
+        }
+    }
+    return $tmp;
 }
-function set_space_progress($usespace,$totalspace = 0){
-    if($usespace == 0 && $totalspace >= 0){
+
+function set_space_progress($usespace, $totalspace = 0) {
+    if ($usespace == 0 && $totalspace >= 0) {
         return 0;
-    }elseif($totalspace < 0){
+    } elseif ($totalspace < 0) {
         return -1;
-    }elseif($usespace > 0 && $totalspace == 0){
+    } elseif ($usespace > 0 && $totalspace == 0) {
         $k = 10;
         $p = 1;
         $totalspace = 1024;
         $num = floor(log10($usespace));
-        if($usespace < 1024){
+        if ($usespace < 1024) {
             $k = 1000;
-        }else{
+        } else {
             $p = floor(log($usespace) / log(2) / 10);
-            if($num == 6) $k=0.9;
-            elseif($num == 7) $k=8;
-            elseif($num == 8) $k=50;
-            elseif($num == 9) $k=2;
-            for($i = 0; $i < $p;$i++){
+            if ($num == 6) $k = 0.9;
+            elseif ($num == 7) $k = 8;
+            elseif ($num == 8) $k = 50;
+            elseif ($num == 9) $k = 2;
+            for ($i = 0; $i < $p; $i++) {
                 $totalspace *= 200;
             }
         }
 
-        if($p <= 0) $p =1;
-        $percent = round(($usespace/$totalspace)*$p,5)*100/$k;
-        if($percent > 100) $percent = 90;
-    }else{
-        $percent=  round(($usespace/$totalspace),2)*100;
-        if($percent > 100) $percent = 100;
+        if ($p <= 0) $p = 1;
+        $percent = round(($usespace / $totalspace) * $p, 5) * 100 / $k;
+        if ($percent > 100) $percent = 90;
+    } else {
+        $percent = round(($usespace / $totalspace), 2) * 100;
+        if ($percent > 100) $percent = 100;
     }
     return $percent;
-
 }
 
 //ajax返回成功信息数据
-function success($info="",$data=array(),$ajax=true){
-	$return= array(
-		'status' => 1, 
-		'info' => $info ? $info : "操作成功",
-		'data' =>$data
-	);
-	if( $ajax ){
-		// 返回JSON数据格式到客户端 包含状态信息
-		header('Content-Type:application/json; charset=utf-8');
-		exit(json_encode($return));
-	}else{
-		return $return;
-	}
-	
+function success($info = "", $data = array(), $ajax = true) {
+    $return = array(
+        'status' => 1,
+        'info' => $info ? $info : "操作成功",
+        'data' => $data
+    );
+    if ($ajax) {
+        // 返回JSON数据格式到客户端 包含状态信息
+        header('Content-Type:application/json; charset=utf-8');
+        exit(json_encode($return));
+    } else {
+        return $return;
+    }
+
 }
 
 //ajax返回错误信息数据
-function error($info="",$data=array(),$ajax=true){
-	$return= array(
-		'status' => 0, 
-		'info' => $info ? $info : "操作失败",
-		'data' =>$data
-	);
-	if( $ajax ){
-		// 返回JSON数据格式到客户端 包含状态信息
-		header('Content-Type:application/json; charset=utf-8');
-		exit(json_encode($return));
-	}else{
-		return $return;
-	}
+function error($info = "", $data = array(), $ajax = true) {
+    $return = array(
+        'status' => 0,
+        'info' => $info ? $info : lang('do_failed'),
+        'data' => $data
+    );
+    if ($ajax) {
+        // 返回JSON数据格式到客户端 包含状态信息
+        header('Content-Type:application/json; charset=utf-8');
+        exit(json_encode($return));
+    } else {
+        return $return;
+    }
 }
-function dzz_userconfig_init()
-{  //初始化用户信息
+
+function dzz_userconfig_init() {  //初始化用户信息
     global $_G;
     //建立用户设置主表
     $userconfig = array(
         'uid' => $_G['uid'],
         'applist' => array(),
-        'screenlist' => array(),
-        'docklist' => array(),
         'dateline' => $_G['timestamp'],
         'updatetime' => $_G['timestamp'],
-        'wins' => serialize(array()),
         'perm' => 0,
-        'iconview' => $_G['setting']['desktop_default']['iconview'] ? $_G['setting']['desktop_default']['iconview'] : 2,
-        'taskbar' => $_G['setting']['desktop_default']['taskbar'] ? $_G['setting']['desktop_default']['taskbar'] : 'bottom',
-        'iconposition' => intval($_G['setting']['desktop_default']['iconposition']),
-        'direction' => intval($_G['setting']['desktop_default']['direction']),
+        'iconview' => $_G['setting']['desktop_default']['iconview'] ? $_G['setting']['desktop_default']['iconview'] : 2
     );
-   
 
-    //处理理默认应用;
-    $apps = C::t('app_market')->fetch_all_by_default($_G['uid']);
-
-    foreach ($apps as $appid => $app) {
-
-        $userconfig['applist'][] = $appid;
-        if ($app['position'] == 1) {
-            continue;
-        } elseif ($app['position'] == 2) { //桌面
-            $fid = DB::result_first("select fid from " . DB::table('folder') . " where uid='{$_G[uid]}' and flag='desktop'");
-        } else { //dock条
-            $fid = DB::result_first("select fid from " . DB::table('folder') . " where uid='{$_G[uid]}' and flag='dock'");
-        }
-        if (!$fid) continue;
-        if ($rid = DB::result_first("select rid from " . DB::table('resources') . " where uid='{$_G[uid]}' and oid='{$appid}' and type='app'")) {
-            C::t('resources')->update_by_rid($rid, array('pfid' => $fid, 'isdelete' => 0));
-            if ($app['position'] == 2) $userconfig['screenlist'][] = $rid;
-            else $userconfig['docklist'][] = $rid;
-        } else {
-            $icoarr = array(
-                'uid' => $_G['uid'],
-                'username' => $_G['username'],
-                'oid' => $appid,
-                'name' => '',
-                'type' => 'app',
-                'dateline' => $_G['timestamp'],
-                'pfid' => $fid,
-                'ext' => '',
-                'size' => 0,
-            );
-            if ($icoarr['rid'] = C::t('resources')->insert_data($icoarr, 1)) {
-                if ($app['position'] == 2) $userconfig['screenlist'][] = $icoarr['rid'];
-                else $userconfig['docklist'][] = $icoarr['rid'];
-            }
-        }
-
-    }
-    $userconfig['applist'] = $userconfig['applist'] ? implode(',', $userconfig['applist']) : '';
-    $userconfig['screenlist'] = $userconfig['screenlist'] ? implode(',', $userconfig['screenlist']) : '';
-    $userconfig['docklist'] = $userconfig['docklist'] ? implode(',', $userconfig['docklist']) : '';
-	C::t('user_field')->insert($userconfig, false, true);
-	if ($userconfig['applist']) C::t('app_user')->insert_by_uid($_G['uid'], $userconfig['applist'], 1);
-	return C::t('user_field')->fetch($_G['uid']);
+    $appids = C::t('app_market')->fetch_all_by_default($_G['uid'],true);
+    $userconfig['applist'] = $appids ? implode(',', $appids) : '';
+    if(!$_G['uid']) return $userconfig;
+    C::t('user_field')->insert($userconfig, false, true);
+    if ($userconfig['applist']) C::t('app_user')->insert_by_uid($_G['uid'], $userconfig['applist'], 1);
+    return C::t('user_field')->fetch($_G['uid']);
 }
+
 /*判断字符串是否是序列化后的数据*/
-/* @param string $data   Value to check to see if was serialized.
- * @param bool   $strict Optional. Whether to be strict about the end of the string. Default true.
+/* @param string $data Value to check to see if was serialized.
+ * @param bool $strict Optional. Whether to be strict about the end of the string. Default true.
  * @return bool False if not serialized and true if it was.
  */
- function is_serialized( $data, $strict = true ) {
-		// if it isn't a string, it isn't serialized.
-		if ( ! is_string( $data ) ) {
-				return false;
-		}
-		$data = trim( $data );
-		if ( 'N;' == $data ) {
-				return true;
-		}
-		if ( strlen( $data ) < 4 ) {
-				return false;
-		}
-		if ( ':' !== $data[1] ) {
-				return false;
-		}
-		if ( $strict ) {
-				$lastc = substr( $data, -1 );
-				if ( ';' !== $lastc && '}' !== $lastc ) {
-						return false;
-				}
-		} else {
-				$semicolon = strpos( $data, ';' );
-				$brace     = strpos( $data, '}' );
-				// Either ; or } must exist.
-				if ( false === $semicolon && false === $brace )
-						return false;
-				// But neither must be in the first X characters.
-				if ( false !== $semicolon && $semicolon < 3 )
-						return false;
-				if ( false !== $brace && $brace < 4 )
-						return false;
-		}
-		$token = $data[0];
-		switch ( $token ) {
-				case 's' :
-						if ( $strict ) {
-								if ( '"' !== substr( $data, -2, 1 ) ) {
-										return false;
-								}
-						} elseif ( false === strpos( $data, '"' ) ) {
-								return false;
-						}
-				case 'a' :
-				case 'O' :
-						return (bool) preg_match( "/^{$token}:[0-9]+:/s", $data );
-				case 'b' :
-				case 'i' :
-				case 'd' :
-						$end = $strict ? '$' : '';
-						return (bool) preg_match( "/^{$token}:[0-9.E-]+;$end/", $data );
-		}
-		return false;
- }
- /**
-  * 短信发送函数
-  * @$param $tplsign string 模板标识
-  * @$param $to number 短信接收手机号
-  * @$param $params  array 拓展参数 expire 过期时间 codelength 验证码长度 gateways指定网关
-  * @return 如果发送成功则返回 验证码发送时间 验证码 过期时间,如果失败返回错误信息
-  * */
- function sms($tplsign,$to,$params=array('expire'=>15,'codelength'=>6)){
-     $params['tplsign'] = $tplsign;
-     $params['to'] = $to;
-    $result = Hook::listen('sms',$params);
-     return $result[0];
+function is_serialized($data, $strict = true) {
+    // if it isn't a string, it isn't serialized.
+    if (!is_string($data)) {
+        return false;
+    }
+    $data = trim($data);
+    if ('N;' == $data) {
+        return true;
+    }
+    if (strlen($data) < 4) {
+        return false;
+    }
+    if (':' !== $data[1]) {
+        return false;
+    }
+    if ($strict) {
+        $lastc = substr($data, -1);
+        if (';' !== $lastc && '}' !== $lastc) {
+            return false;
+        }
+    } else {
+        $semicolon = strpos($data, ';');
+        $brace = strpos($data, '}');
+        // Either ; or } must exist.
+        if (false === $semicolon && false === $brace)
+            return false;
+        // But neither must be in the first X characters.
+        if (false !== $semicolon && $semicolon < 3)
+            return false;
+        if (false !== $brace && $brace < 4)
+            return false;
+    }
+    $token = $data[0];
+    switch ($token) {
+        case 's' :
+            if ($strict) {
+                if ('"' !== substr($data, -2, 1)) {
+                    return false;
+                }
+            } elseif (false === strpos($data, '"')) {
+                return false;
+            }
+        case 'a' :
+        case 'O' :
+            return (bool)preg_match("/^{$token}:[0-9]+:/s", $data);
+        case 'b' :
+        case 'i' :
+        case 'd' :
+            $end = $strict ? '$' : '';
+            return (bool)preg_match("/^{$token}:[0-9.E-]+;$end/", $data);
+    }
+    return false;
+}
 
- }
+/**
+ * 短信发送函数
+ * @$param $tplsign string 模板标识
+ * @$param $to number 短信接收手机号
+ * @$param $params  array 拓展参数 expire 过期时间 codelength 验证码长度 gateways指定网关
+ * @return 如果发送成功则返回 验证码发送时间 验证码 过期时间,如果失败返回错误信息
+ * */
+function sms($tplsign, $to, $params = array('expire' => 15, 'codelength' => 6)) {
+    $params['tplsign'] = $tplsign;
+    $params['to'] = $to;
+    $result = Hook::listen('sms', $params);
+    if (empty($result) || !isset($result[0])) {
+        return ['error' => '短信服务未配置或钩子未注册'];
+    }
+    return $result[0];
+}
+
+/**
+ * 计算过期时间文本
+ * @param int $endtime 结束时间戳
+ * @return string 过期时间描述（如：3天后、2小时后、5分钟后、即将过期、已过期、永久有效）
+ */
+function getexpiretext($endtime = 0) {
+    if (empty($endtime)) {
+        return '永久有效';
+    }
+    
+    $timediff = $endtime - TIMESTAMP;
+    
+    if ($timediff <= 0) {
+        return '已过期';
+    }
+    
+    // 计算天、时、分、秒
+    $days = floor($timediff / 86400);
+    if ($days > 90) {
+        return date('Y-m-d H:i', $endtime);
+    }
+    $remaining = $timediff % 86400;
+    $hours = floor($remaining / 3600);
+    $remaining %= 3600;
+    $minutes = floor($remaining / 60);
+    $seconds = $remaining % 60;
+    
+    if ($days > 0) {
+        return $days . '天后';
+    } elseif ($hours > 0) {
+        return $hours . '小时后';
+    } elseif ($minutes > 0) {
+        return $minutes . '分钟后';
+    } else {
+        return '即将过期';
+    }
+}
+
+function getonlinemember($uids) {
+	global $_G;
+	if ($uids && is_array($uids) && empty($_G['ols'])) {
+		$_G['ols'] = array();
+		foreach(C::app()->session->fetch_all_by_uid($uids) as $value) {
+			if(!$value['invisible']) {
+				$_G['ols'][$value['uid']] = $value['lastactivity'];
+			}
+		}
+	}
+}
+/**
+ * 记录用户状态变更日志
+ * 
+ * @param int $uid 用户ID
+ * @param int|null $oldStatus 旧状态值（可选，为null时不记录旧状态）
+ * @param int $newStatus 新状态值
+ * @param string $logType 日志类型
+ * @return void
+ */
+function logStatusChange($uid, $oldStatus = null, $newStatus, $logType = 'otherlog') {
+    $newStatusText = $newStatus == 1 ? '启用' : '禁用';
+    
+    if ($oldStatus !== null) {
+        if ($oldStatus == $newStatus) {
+            return;
+        }
+        $oldStatusText = $oldStatus == 1 ? '启用' : '禁用';
+        $logContent = "用户UID：{$uid}，状态变更：从{$oldStatusText}改为{$newStatusText}";
+    } else {
+        $logContent = "用户UID：{$uid}，状态变更为：{$newStatusText}";
+    }
+    writelog($logType, $logContent);
+}

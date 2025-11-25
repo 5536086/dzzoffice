@@ -6,7 +6,7 @@
 <link href="dzz/system/css/select-file.css?{VERHASH}" rel="stylesheet" media="all">
 <script type="text/javascript" src="static/js/jquery.leftDrager.js?{VERHASH}"></script>
 <style>  
-<!--{ if $ _GET [ 'nosearch' ] > 0}-->
+<!--{if $_GET['nosearch'] > 0}-->
 .orgtree-search {
     display: none;
 }
@@ -23,7 +23,7 @@ body {
      var nouser=parseInt('$_GET[nouser]')>0?1:0;
      var stype='$_GET[stype]'?parseInt('$_GET[stype]'):0;//0:可以选择机构和用户；1：仅选择机构和部门：2：仅选择用户
      var moderator=parseInt('$_GET[moderator]')>0?1:0;*/
-    var ismobile = '$ismobile' ? 1 : 0;
+    var ismobile = '$_G['ismobile']' ? 1 : 0;
 </script>
 <!--{template common/header_simple_end}-->
 <!--内容区开始-->
@@ -80,7 +80,7 @@ body {
 		    	<input type="text" placeholder="搜索" class="form-control select-display"/>
 		    	<div class="select-change select-display">
 		    		<a href="javascript:;">
-		    			<i class="dzz dzz-layout"></i>
+		    			<i class="dzz"></i>
 		    		</a>
 		    	</div>
 		    </div>
@@ -193,7 +193,9 @@ $('#position').off('select_node.jstree').on('select_node.jstree', function (e, d
                 inst.deselect_node(node);
                 $('#' + ctrlid).val('');
             }
-        },'json')
+        },'json').fail(function (jqXHR, textStatus, errorThrown) {
+            showmessage('{lang do_failed}', 'error', 3000, 1);
+        });
     }else{
         inst.deselect_node(node);
         $('#' + ctrlid).val('');
@@ -254,7 +256,9 @@ function createNewFolder() {
 //                    showDialog(data['error']);
                 showmessage(data['error'],"danger",2000,1);
             }
-        }, 'json');
+        }, 'json').fail(function (jqXHR, textStatus, errorThrown) {
+            showmessage('{lang do_failed}', 'error', 3000, 1);
+        });
         return false;
     }
 }
@@ -285,7 +289,9 @@ function realcreate(obj, node,parentnode) {
         }else {
             showmessage(data['error'],"danger",2000,1);
         }
-    },'json');
+    },'json').fail(function (jqXHR, textStatus, errorThrown) {
+        showmessage('{lang do_failed}', 'error', 3000, 1);
+    });
     return false;
 }
 function canclecreate(obj, node) {
@@ -302,14 +308,16 @@ function submitdata(){
     }else{
         $.post(MOD_URL+'&op=positionlist&do=geffolderinfo',{'fid':fid},function(data){
 			try{if(typeof parent.showWindow_callback == 'function') parent.showWindow_callback(fid,data);}catch(e){}
-            if(parent.$callback){
-               try{ parent.$callback(fid,data);}catch(e){}
+            if(parent.{$callback}){
+               try{ parent.{$callback}(fid,data);}catch(e){}
             }else{
-               try{ opened.$callback(fid,data);}catch(e){}
+               try{ opened.{$callback}(fid,data);}catch(e){}
             }
 			
             hide_window();
-        },'json')
+        },'json').fail(function (jqXHR, textStatus, errorThrown) {
+            showmessage('{lang do_failed}', 'error', 3000, 1);
+        });
     }
     return false;
 }

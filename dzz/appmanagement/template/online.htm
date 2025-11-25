@@ -1,0 +1,195 @@
+<!--{template lyear:header_simple}-->
+<style>
+	html,body{
+		overflow: auto;
+	}
+	.img-avatar {
+		width: 30px;
+		height: 30px;
+		line-height: 28px;
+	}
+</style>
+<link rel="stylesheet" href="static/lyear/js/layui/css/layui.css?{VERHASH}">
+<div class="alert alert-warning alert-dismissible fade show" role="alert">
+<strong>{lang board_message}</strong>
+<ul class="mb-0">
+<li>暂不支持强制下线用户！</li>
+<li>最后活动时间为每10分钟更新一次，在此期间活动不会更新。</li>
+<li>当前更新用户在线时间的时间频率为：<!--{if $_G['setting']['oltimespan']}-->$_G['setting']['oltimespan']分钟/次<!--{else}-->不记录用户在线时间<!--{/if}--></li>
+</ul>
+<button type="button" class="btn-close" data-dismiss="alert" aria-label="Close"></button>
+</div>
+<table class="layui-hide" id="table" lay-filter="table"></table>
+<script type="text/html" id="toolbar">
+	<div class="layui-btn-container">
+		<button type="button" id="getCheckDataBtn" class="layui-btn layui-btn-normal layui-btn-sm layui-btn-disabled" lay-event="getCheckData" disabled>{lang get_selected_row_data}</button>
+		<button type="button" class="layui-btn layui-btn-normal layui-btn-sm" lay-event="get">{lang refresh}</button>
+		<button class="layui-btn layui-btn-sm layui-btn-primary" id="dropdownButton"><span id="ismembertext">全部用户</span><i class="layui-icon layui-icon-down layui-font-12"></i></button>
+	</div>
+</script>
+<script src="static/lyear/js/layui/layui.js?{VERHASH}"></script>
+<script>
+	var search_data = {
+		'ismember': ''
+	};
+	layui.use(['table', 'dropdown'], function(){
+	  var table = layui.table;
+	  var dropdown = layui.dropdown;
+	  table.render({
+		elem: '#table',
+		url: '{MOD_URL}&do=onlineinfo&ajaxdata=json',
+		toolbar: '#toolbar',
+		title: '在线用户数据表格',
+		autoSort: false,
+		even:true,
+		cellMinWidth:120,
+		text: {
+			none: '{lang no_related_data}'
+		},
+		page: {
+		  limit: 20,
+		  limits: [10, 20, 50, 100, 200, 500, 1000,2000]
+		},
+		cols: [[
+		{type:'checkbox', fixed: 'left'}
+		  ,{title: 'ID',width:80, fixed: 'left',type: 'numbers'}
+		  ,{field:'uid', title: '{lang username}', sort: true,templet: function(d) {return d.uid;}}
+		  ,{field:'groupid', title: '{lang usergroup}', align: 'center', sort: true}
+		  ,{field:'sid', title: 'sid', align: 'center', sort: true}
+		  ,{field:'ip', title: 'IP', align: 'left', sort: true}
+		  ,{field:'lastactivity', title: '{lang last_activity_time}', align: 'center', sort: true,templet: function(d) {return d.lastactivity;}}
+		  ,{field:'lastolupdate', title: '{lang online_time_update_time}', sort: true,templet: function(d) {return d.lastolupdate;}}
+		]],
+		done: function(){
+			checkStatusBtn();
+			dropdown.render({
+				elem: '#dropdownButton',
+				data: [{
+				id: '0',
+				title: '{lang all_username}'
+				},{
+				id: '1',
+				title: '{lang login_user}'
+				},{
+				id: '2',
+				title: '{lang logout_user}'
+			}],
+			click: function(obj){
+				switch(obj.id){
+					case '0':
+					search_data.ismember = '';
+					jQuery('#ismembertext').text('{lang all_username}');
+					break;
+					case '1':
+					search_data.ismember = 1;
+					jQuery('#ismembertext').text('{lang login_user}');
+					break;
+					case '2':
+					search_data.ismember = 2;
+					jQuery('#ismembertext').text('{lang logout_user}');
+					break;
+				}
+				table.reloadData('table', {
+					where: search_data,
+					page: {
+						curr: 1
+					}
+				});
+			}
+		});
+	  
+		},
+		initSort: {
+			field: 'lastactivity',
+			type: 'desc'
+		}
+	  });
+	  table.on('checkbox(table)', function(obj){
+		checkStatusBtn();
+	});
+	table.on('toolbar(table)', function(obj){
+		var checkStatus = table.checkStatus(obj.config.id);
+		var data = checkStatus.dataCache;
+		switch(obj.event){
+			case 'getCheckData':
+				if (data.length === 0) {
+					showmessage("{lang please_select_at_least_one_row}", 'danger', 3000, 1);
+					return;
+				}
+				var template = '<div class="accordion">';
+					data.forEach(function(item) {
+						template += '<div class="accordion-item">';
+						template += '<h2 class="accordion-header" id="Open-heading' + item.LAY_NUM + '">';
+						template += '<button class="accordion-button" type="button" data-toggle="collapse" data-target="#Open-collapse' + item.LAY_NUM + '" aria-expanded="true" aria-controls="Open-collapse' + item.LAY_NUM + '">';
+						template += 'ID：' + item.LAY_NUM;
+						template += '</button>';
+						template += '</h2>';
+						template += '<div id="Open-collapse' + item.LAY_NUM + '" class="accordion-collapse collapse show" aria-labelledby="Open-heading' + item.LAY_NUM + '">';
+						template += '<div class="accordion-body">';
+						template += '<p><strong>{lang username}:</strong> ' + item.uid + '</p>';
+						template += '<p><strong>{lang usergroup}:</strong> ' + item.groupid + '</p>';
+						template += '<p><strong>sid:</strong> ' + item.sid + '</p>';
+						template += '<p><strong>IP:</strong> ' + item.ip + '</p>';
+						template += '<p><strong>{lang last_activity_time}:</strong> ' + item.lastactivity + '</p>';
+						template += '<p><strong>{lang online_time_update_time}:</strong> ' + item.lastolupdate + '</p>';
+						template += '</div>';
+						template += '</div>';
+						template += '</div>';
+					});
+				template += '</div>';
+				layer.alert(template, {
+					title: '{lang online_user_data}'
+				});
+				break;
+				case 'get':
+				table.reloadData('table', {
+					where: search_data,
+					page: {
+						curr: 1
+					}
+				});
+				break; 
+			};
+		});
+	table.on('sort(table)', function(obj){
+		table.reloadData('table', {
+			initSort: obj
+			,where: {
+				field: obj.field
+				,order: obj.type
+			}
+		});
+	});
+	table.on('rowDouble(table)', function(obj){
+		showDataTemplate(obj);
+	});
+		function showDataTemplate(obj) {
+			var data = obj.dataCache;
+			var template =
+			'<p><strong>{lang username}:</strong> ' + data.uid + '</p>' +
+			'<p><strong>{lang usergroup}:</strong> ' + data.groupid + '</p>' +
+			'<p><strong>sid:</strong> ' + data.sid + '</p>' +
+			'<p><strong>IP:</strong> ' + data.ip + '</p>' +
+			'<p><strong>{lang last_activity_time}:</strong> ' + data.lastactivity + '</p>' +
+			'<p><strong>{lang online_time_update_time}:</strong> ' + data.lastolupdate + '</p>';
+
+			layer.alert(template, {
+				title:' ID ' + data.LAY_NUM + ' {lang detail}：'
+			});
+			obj.tr.addClass('layui-table-click').siblings().removeClass('layui-table-click');
+		}
+		function checkStatusBtn() {
+            var checkStatus = table.checkStatus('table');
+            var checkedCount = checkStatus.data.length;
+			var getCheckDataBtn = document.getElementById('getCheckDataBtn');
+			if(checkedCount > 0) {
+				getCheckDataBtn.removeAttribute('disabled');
+				getCheckDataBtn.classList.remove('layui-btn-disabled');
+			} else {
+				getCheckDataBtn.setAttribute('disabled', 'disabled');
+				getCheckDataBtn.classList.add('layui-btn-disabled');
+			}
+        }
+	});
+</script>
+<!--{template lyear:footer}-->

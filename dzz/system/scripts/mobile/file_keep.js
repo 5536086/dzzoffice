@@ -291,7 +291,9 @@ jQuery(document).off('tap.docreate').on('tap.docreate', '.new-folder', function 
                     $('.filelist').prepend(html);
                     $.toast("操作成功");
                 }
-            }, 'json');
+            }, 'json').fail(function (jqXHR, textStatus, errorThrown) {
+                showmessage(__lang.do_failed, 'error', 3000, 1);
+            });
 
         },
         onCancel: function () {

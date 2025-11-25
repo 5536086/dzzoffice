@@ -155,8 +155,10 @@ function check_submit(form){
 			return false;
 		}
 	});
-	if(error) return false;
-	
+	if(error) {
+		showmessage('请先检查表单内容是否正确','error',2000,1);
+		return false;
+	}
 	var url = jQuery(form).attr('action');
 
 	url = (url)? url:'user.php?mod=register';
@@ -177,7 +179,9 @@ function check_submit(form){
 		}else{
 			jQuery('#returnmessage4').html(json['error']);
 		}
-	},'json');
+	},'json').fail(function (jqXHR, textStatus, errorThrown) {
+		showmessage(__lang.do_failed, 'error', 3000, 1);
+	});
 }
 
 function checkusername(el) {
@@ -200,6 +204,8 @@ function checkusername(el) {
 		
 		jQuery.getJSON('user.php?mod=ajax&action=checkusername&username=' + encodeURI(username), function(json) {
 			errormessage(el, json.error||'');
+		}).fail(function(jqXHR, textStatus, errorThrown) {
+			showmessage('{lang do_failed}' + textStatus, 'danger', 3000, 1);
 		});
 	}
 }
@@ -253,7 +259,6 @@ function checkpassword(el1, el2) {
 }
 
 function checkemail(el) {
-	
 	var email = trim(el.val());
 	if(email == '' || email == lastemail) {
 		errormessage(el);
@@ -269,7 +274,9 @@ function checkemail(el) {
 		return;
 	}
 	jQuery.getJSON('user.php?mod=ajax&action=checkemail&email=' + email, function(json) {	
-			errormessage(el, json.error||'');	
+		errormessage(el, json.error||'');
+	}).fail(function(jqXHR, textStatus, errorThrown) {
+		showmessage('{lang do_failed}' + textStatus, 'danger', 3000, 1);
 	});
 }
 

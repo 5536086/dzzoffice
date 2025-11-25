@@ -11,18 +11,18 @@ if (!defined('IN_DZZ')) {
 }
 
 Hook::listen('check_login');//检查是否登录，未登录跳转到登录界面
-
+$navtitle = lang('myCountCenter');
 $uid = intval($_G['uid']);
-
 $verify = C::t('user_verify')->fetch($_G['uid']);//验证信息
-
-$space = C::t('user_profile')->get_userprofile_by_uid($uid);//用户资料信息
-
-
+$userinfo = C::t('user_profile')->get_userprofile_by_uid($uid);//用户资料信息
 $userstatus = C::t('user_status')->fetch($uid);//用户状态
-
-//$qqlogin = DB::fetch_first("select openid,unbind from %t where uid=%d", array('user_qqconnect', $uid));
-
+$userstatus['profileprogress'] = $userstatus['profileprogress'] ? $userstatus['profileprogress'] : 0;
+$space = dzzgetspace($_G['uid']);
+$vid = intval($_GET['vid']);
+$my_username = false;
+if (!$vid) {
+    $my_username = perm_check::checkuserperm('my_username');
+}
 //读取缓存
 loadcache('profilesetting');
 
@@ -33,12 +33,48 @@ if (empty($_G['cache']['profilesetting'])) {
 }
 
 if (submitcheck('profilesubmit')) {
+    $setarr = $verifyarr = $errorarr = $userarr = array();
+    if($my_username) {
+        //用户名验证
+        $username = trim($_GET['username']);
 
-    $setarr = $verifyarr = $errorarr = array();
+        $usernamelen = dstrlen($_GET['username']);
+        if ($usernamelen < 3) {
+            profile_showerror('my_username',lang('profile_username_tooshort'));
+        } elseif ($usernamelen > 30) {
+            profile_showerror('my_username',lang('profile_username_toolong'));
+        } elseif (!check_username(addslashes(trim(stripslashes($username))))) {
+            profile_showerror('my_username',lang('profile_username_illegal'));
+        }
+
+        //如果输入用户名，检查用户名不能重复
+        if ($username != $_G['username']) {
+            if (C::t('user')->fetch_by_username($username)) {
+                profile_showerror('my_username',lang('user_registered_retry'));
+            }
+            if ($_G['setting']['censoruser'] && @preg_match($censorexp, $username)) {
+                profile_showerror('my_username',lang('profile_username_protect'));
+            }
+        }
+        $userarr['username'] = $username;
+    }
+    $language = isset($_GET['language']) ? trim($_GET['language']) : '';
+    if($language) {
+        $langList = $_G['config']['output']['language_list'];
+        if (isset($langList[$language])) {
+            $userarr['language'] = $language;
+        }
+    }
+    $timeoffset = intval($_GET['timeoffset']);
+    if ($timeoffset >= -12 && $timeoffset <= 12 || $timeoffset == 9999) {
+        $userarr['timeoffset'] = $timeoffset;
+    }
+    if($userarr) {
+        C::t('user')->update($_G['uid'], $userarr);
+    }
 
     $censor = dzz_censor::instance();//敏感字符过滤类实例
     //验证
-    $vid = intval($_GET['vid']);
     if ($vid) {
         $verifyconfig = $_G['setting']['verify'][$vid];
         if ($verifyconfig['available'] && (empty($verifyconfig['groupid']) || in_array($_G['groupid'], $verifyconfig['groupid']))) {
@@ -64,15 +100,6 @@ if (submitcheck('profilesubmit')) {
         }
         if ($field && !$field['available']) {
             continue;
-        } elseif ($key == 'timeoffset') {
-			if ($value >= -12 && $value <= 12 || $value == 9999) {
-                C::t('user')->update($_G['uid'], array('timeoffset' => intval($value)));
-            }
-		} elseif ($key == 'language') {
-			$langList = $_G['config']['output']['language_list'];
-            if (isset($langList[$value])) {
-                C::t('user')->update($_G['uid'], array('language' => ($value)));
-            }
         } elseif ($key == 'site') {
             if (!in_array(strtolower(substr($value, 0, 6)), array('http:/', 'https:', 'ftp://', 'rtsp:/', 'mms://')) && !preg_match('/^static\//', $value) && !preg_match('/^data\//', $value)) {
                 $value = 'http://' . $value;
@@ -87,8 +114,8 @@ if (submitcheck('profilesubmit')) {
         }
         if (empty($field)) {
             continue;
-		}elseif($field['unchangeable'] && !empty($space[$key])){
-			continue;
+        } elseif ($field['unchangeable'] && !empty($space[$key])) {
+            continue;
         } elseif (profile_check($key, $value, $space)) {
             $setarr[$key] = dhtmlspecialchars(trim($value));
         } else {
@@ -185,11 +212,11 @@ if (submitcheck('profilesubmit')) {
         $setarr['zodiac'] = get_zodiac($_POST['birthyear']);
     }
     //资料展示权限
-    $privacys = isset($_POST['privacy']) ? $_POST['privacy']:array();
+    $privacys = isset($_POST['privacy']) ? $_POST['privacy'] : array();
     $setarrs = array();
-    foreach($setarr as $k=>$v){
+    foreach ($setarr as $k => $v) {
         $setarrs[$k]['value'] = $v;
-        $setarrs[$k]['privacy'] = isset($privacys[$k]) ? $privacys[$k]:'' ;
+        $setarrs[$k]['privacy'] = isset($privacys[$k]) ? $privacys[$k] : '';
     }
 
     if ($setarrs) {
@@ -220,7 +247,7 @@ if (submitcheck('profilesubmit')) {
         if (!(C::t('user_verify')->count_by_uid($_G['uid']))) {
             C::t('user_verify')->insert(array('uid' => $_G['uid']));
         }
-	
+
         if ($_G['setting']['verify'][$vid]['available']) {
             //发送通知管理员有资料需要审核
             $appid = C::t('app_market')->fetch_appid_by_mod('{adminscript}?mod=member', 1);
@@ -247,21 +274,15 @@ if (submitcheck('profilesubmit')) {
     countprofileprogress();//计算资料完整度
     $message = $vid ? lang('profile_verify_verifying', array('verify' => $verifyconfig['title'])) : '';
     profile_showsuccess($message);//资料修改提示
-
-} elseif (isset($_GET['action']) && $_GET['action'] == 'qq_unbind') {//取消绑定，根据类型判断取消绑定内容
-    C::t('user_qqconnect')->delete($_GET['openid']);
-    showmessage('qq_unbind_success', dreferer(), array(), array('alert' => 'right'));
-   //Hook::listen('unbind_qq');
 } else {
     $vid = !empty($_GET['vid']) ? intval($_GET['vid']) : 0;
     $privacy = C::t('user_profile')->fetch_privacy_by_uid($uid);
+    $allowitems = array();
     if ($vid) {
-        $allowitems = array();
         if (empty($_G['setting']['verify'][$vid]['groupid']) || in_array($_G['groupid'], $_G['setting']['verify'][$vid]['groupid'])) {
             $allowitems = $_G['setting']['verify'][$vid]['field'];
         }
     } else {
-        $allowitems = array();
         $verifyfieldid = array();
         //在认证里的资料项只在认证页里出现
         foreach ($_G['setting']['verify'] as $key => $value) {
@@ -273,6 +294,8 @@ if (submitcheck('profilesubmit')) {
             if ($value['available'] > 0 && !in_array($key, $verifyfieldid)) $allowitems[] = $key;
         }
         $allowitems[] = 'timeoffset';
+        $servertime = time() * 1000;
+        $regdatedays = floor((time() - intval($_G['member']['regdate'])) / (60 * 60 * 24));
     }
     $showbtn = ($vid && $verify['verify' . $vid] != 1) || empty($vid);
     if (!empty($verify) && is_array($verify)) {
@@ -297,7 +320,7 @@ if (submitcheck('profilesubmit')) {
     }
     $htmls = $settings = array();
     foreach ($allowitems as $fieldid) {
-        if (!in_array($fieldid, array('timeoffset'))) {
+        if ($fieldid != 'timeoffset') {
             $html = profile_setting($fieldid, $space, $vid ? false : true);
             if ($html) {
                 $settings[$fieldid] = $_G['cache']['profilesetting'][$fieldid];
@@ -306,19 +329,22 @@ if (submitcheck('profilesubmit')) {
         }
     }
     $langList = $_G['config']['output']['language_list'];
+    if($_G['adminid'] == 1) {
+        $my_info = false;
+    } else {
+        $my_info = perm_check::checkuserperm('my_info');
+    }
     include template('profile');
 }
 
-function profile_showerror($key, $extrainfo='')
-{
+function profile_showerror($key, $extrainfo = '') {
     echo '<script>';
     echo 'parent.show_error("' . $key . '", "' . $extrainfo . '");';
     echo '</script>';
     exit();
 }
 
-function profile_showsuccess($message = '')
-{
+function profile_showsuccess($message = '') {
     echo '<script type="text/javascript">';
     echo "parent.show_success('$message');";
     echo '</script>';

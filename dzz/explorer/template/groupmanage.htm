@@ -1,0 +1,300 @@
+<div class="middletopMenu">
+    <div class="row justify-content-end">
+        <div class="col-sm-4 mb-3">
+            <select name="field_type" id="groupon" class="form-select">
+                <option value="0" selected="selected">{lang all_groups}</option>
+                <option value="1">{lang already_close}</option>
+                <option value="2">{lang already_start}</option>
+            </select>
+        </div>
+        <div class="col-sm-6 mb-3">
+            <div class="input-daterange input-group" id="datepicker">
+                <label class="input-group-text" for="selectDate">{lang to}</label>
+                <input type="text" class="form-control selectDate" id="selectDate" placeholder="{lang start_time}">
+                <label class="input-group-text" for="selectDate1">{lang to_date}</label>
+                <input type="text" class="form-control selectDate" id="selectDate1" placeholder="{lang finish_time}">
+            </div>
+        </div>
+        <div class="col-md-2 mb-3">
+            <button type="submit" class="btn btn-primary me-1" id="search-btn">{lang search}</button>
+            <button type="reset" class="btn btn-default" id="refreshsearch">{lang reset}</button>
+        </div>
+    </div>
+</div>
+<table class="layui-hide" id="table" lay-filter="table"></table>
+<script type="text/html" id="toolbar">
+    <div class="layui-btn-container">
+        <button type="button" id="getCheckDataBtn" class="layui-btn layui-btn-normal layui-btn-sm layui-btn-disabled" lay-event="getCheckData" disabled>{lang get_selected_row_data}</button>
+        <button type="button" class="layui-btn layui-btn-normal layui-btn-sm" lay-event="get">{lang refresh}</button>
+    </div>
+</script>
+<script type="text/html" id="switchTpl">
+    <input type="checkbox" name="diron" value="{{d.orgid}}" lay-skin="switch" lay-text="开启|关闭" lay-filter="sexDemo" {{ d.diron == 1 ? 'checked' : '' }}>
+</script>
+<script type="text/html" id="barDemo">
+    <a class="layui-btn layui-btn-normal layui-btn-xs" lay-event="view">查看</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">{lang delete}</a>
+</script>
+<script>
+    var search_data = {
+        'startdate': '',
+        'enddate': '',
+        'groupon':'',
+        'sort':'dateline',
+		'order':'desc'
+    };
+    $('.input-daterange').datepicker({
+        autoclose:true,
+        todayHighlight:true,
+        clearBtn:true,
+        language: 'zh_CN',
+        todayBtn: "linked",
+		calendarWeeks: true,
+        zIndexOffset: 120
+    });
+
+	jQuery(document).ready(function(e) {
+	  layuiModules.table.render({
+		elem: '#table',
+		url: '{MOD_URL}&op=groupmanage&do=filelist&ajaxdata=json',
+		toolbar: '#toolbar',
+		title: '群组管理数据表格',
+        even:true,
+        cellMinWidth:120,
+        height: function(){
+            var otherHeight = $('.middleconMenu').outerHeight();
+            var middletopMenu = $('.middletopMenu').outerHeight();
+            return otherHeight-middletopMenu;
+        },
+		text: {
+			none: '<div class="emptyPage"><img src="static/image/common/no_list.png"><p class="emptyPage-text">{lang not_group}</p></div>'
+		},
+		page: {
+		  limit: 50, // 默认显示20行
+		  limits: [10, 20, 50, 100, 200, 500, 1000,2000,5000] // 可选的行数
+		}
+		,cols: [[
+            {type:'checkbox', fixed: 'left'}
+            ,{title: 'ID',width:80, fixed: 'left',type: 'numbers'}
+            ,{field:'orgname', title: '{lang group_name}<i class="layui-icon layui-icon-tips layui-font-14" lay-event="email-tips" title="点击查看群组后，右侧信息栏支持编辑群组名称、描述等信息" style="margin-left: 5px;"></i>', sort: true, templet: function(d) {return d.orgname;}}
+		  ,{field:'creater', title: '{lang explorer_groupperm_manager}', align: 'center', sort: true}
+		  ,{field:'usernum', title: '{lang membership}', align: 'center', sort: true}
+		  ,{field:'dateline', title: '{lang create_date}', align: 'center',sort: true}
+          ,{field:'maxspacesize', title: '空间大小(M)<i class="layui-icon layui-icon-tips layui-font-14" lay-event="email-tips" title="点击对应的单元格支持编辑，单位为M" style="margin-left: 5px;"></i>', align: 'center',sort: true,edit: 'text',width:150}
+          ,{field:'diron', title: '状态',templet: '#switchTpl',align: 'center',sort: true, unresize: true}
+          ,{field:'desc', title: '{lang introduce}',hide:true}
+          ,{title: '{lang operation}',align:'center', toolbar: '#barDemo'}
+		]],
+		initSort: {
+			field: 'dateline',
+			type: 'desc'
+		},
+        done: function(){
+            checkStatusBtn(this.id);
+            $(document).off('click', '#search-btn').on('click', '#search-btn', function() {
+                executedynamisc_search();
+            });
+            $(document).off('click', '#refreshsearch').on('click', '#refreshsearch', function() {
+                $('#selectDate').val('');
+                $('#selectDate1').val('');
+                $('#groupon').val('0');
+                for (var o in search_data) {
+                    search_data[o] = '';
+                }
+                executedynamisc_search();
+            });
+        },
+	  });
+      layuiModules.table.on('checkbox(table)', function(obj){
+        checkStatusBtn(obj.config.id);
+    });
+    //头工具栏事件
+	layuiModules.table.on('toolbar(table)', function(obj){
+		var checkStatus = layuiModules.table.checkStatus(obj.config.id);
+		var data = checkStatus.dataCache;
+		switch(obj.event){
+            case 'getCheckData':
+                if (data.length === 0) {
+                    showmessage("{lang please_select_at_least_one_row}", 'danger', 3000, 1);
+                    return;
+                }
+                var template = '<div class="accordion">';
+                    data.forEach(function(item) {
+                        template += '<div class="accordion-item">';
+                        template += '<h2 class="accordion-header" id="Open-heading' + item.LAY_NUM + '">';
+                        template += '<button class="accordion-button" type="button" data-toggle="collapse" data-target="#Open-collapse' + item.LAY_NUM + '" aria-expanded="true" aria-controls="Open-collapse' + item.LAY_NUM + '">';
+                        template += 'ID：' + item.LAY_NUM;
+                        template += '</button>';
+                        template += '</h2>';
+                        template += '<div id="Open-collapse' + item.LAY_NUM + '" class="accordion-collapse collapse show" aria-labelledby="Open-heading' + item.LAY_NUM + '">';
+                        template += '<div class="accordion-body">';
+                        template += '<p><strong>{lang group_name}:</strong> ' + item.orgname + '</p>';
+                        template += '<p><strong>{lang introduce}:</strong> ' + item.desc + '</p>';
+                        template += '<p><strong>{lang explorer_groupperm_manager}:</strong> ' + item.creater + '</p>';
+                        template += '<p><strong>{lang membership}:</strong> ' + item.usernum + '</p>';
+                        template += '<p><strong>{lang create_date}:</strong> ' + item.dateline + '</p>';
+                        template += '<p><strong>空间大小:</strong> ' + item.maxspacesize + 'M</p>';
+                        template += '<p><strong>状态:</strong> ' + (item.diron == 1 ? '开启' : '关闭') + '</p>';
+                    template += '</div>';
+                    template += '</div>';
+                    template += '</div>';
+                });
+                template += '</div>';
+                layer.alert(template, {
+                    title: '选中的记录'
+                });
+            break;
+            case 'delete':
+				if (data.length === 0) {
+					showmessage("{lang please_select_at_least_one_row}", 'danger', 3000, 1);
+					return;
+				}
+                var orgid = new Array();
+				$.each(data,function(i) {
+					orgid.push(this.orgid);
+				});
+                layer.confirm(__lang.finally_delete_file_confirm+',已选择：'+data.length+'个群组', {title:__lang.delete_group_confirm,skin:'lyear-skin-danger'}, function(index){
+                    layer.msg(__lang.deleting_not_please_close, {offset:'10px',time:0});
+                    $.post(MOD_URL+'&op=groupmanage&do=delgroup',{'gid':orgid},function(data){
+                        var msg = '';
+                        for(var i in data.msg){
+                            if(data.msg[i]=='success'){
+                                msg += data.name[i]+__lang.delete_group_success_after_second;
+                            }else{
+                                msg += '<p class="text-danger">' + data.msg[i] + '</p>';
+                            }
+                        }
+                        layer.msg(msg, {offset:'10px'});
+                        layuiModules.table.reloadData('table');
+                        return false;
+                    },'json').fail(function() {
+                        layer.msg('{lang do_failed}', {offset:'10px'});
+                    });
+                });
+			break;
+            case 'get':
+            layuiModules.table.reloadData('table', {
+                where: search_data,
+                page: {
+                    curr: 1
+                }
+            });
+            break; 
+        };
+    });
+    layuiModules.table.on('edit(table)', function(obj){
+        jQuery.post('{MOD_URL}&op=groupmanage&do=folder_maxspacesize', {'orgid': obj.data.orgid,maxspacesize:obj.data.maxspacesize},function(json){
+        if(json['success']){
+            showmessage('空间大小设置成功', 'success', '3000', 1);
+        } else {
+            if(json['error']){
+                showmessage(json['error'], 'danger', '3000', 1);
+            } else {
+                showmessage('{lang error}', 'danger', '3000', 1);
+            }
+        }
+        },'json')
+        .fail(function() {
+            showmessage('{lang do_failed}', 'danger',3000,1);
+        });
+    });
+    layuiModules.form.on('switch(sexDemo)', function(obj) {
+		var diron = obj.elem.checked ? 1 : 0;
+        jQuery.post('{MOD_URL}&op=groupmanage&do=groupmanage', {'gid': this.value,'diron':diron},function(json){
+        if(json['success']){
+            showmessage('{lang do_success}', 'success', '3000', 1);
+            return;
+        } else {
+            if(json['error']){
+                showmessage(json['error'], 'danger', '3000', 1);
+            } else {
+                showmessage('{lang error}', 'danger', '3000', 1);
+            }
+            obj.elem.checked = !obj.elem.checked;
+            layuiModules.form.render('checkbox');
+        }
+        },'json')
+        .fail(function() {
+            showmessage('{lang do_failed}', 'danger',3000,1);
+            obj.elem.checked = !obj.elem.checked;
+            layuiModules.form.render('checkbox');
+        });
+    });
+    //监听工具条
+	layuiModules.table.on('tool(table)', function(obj){
+        var data = obj.dataCache;
+        if(obj.event === 'view'){
+            var hash = "#group&gid=" + data.orgid;
+            location.hash = hash;
+        } else if(obj.event === 'del'){
+            layer.confirm(__lang.finally_delete_file_confirm, {title:__lang.delete_group_confirm,skin:'lyear-skin-danger'}, function(index){
+                layer.msg(__lang.deleting_not_please_close, {offset:'10px',time:0});
+                $.post(MOD_URL+'&op=groupmanage&do=delgroup',{'gid':data.orgid},function(data){
+                    var msg = '';
+                    if(data.error) msg = data.error;
+                    for(var i in data.msg){
+                        if(data.msg[i]=='success'){
+                            obj.del();
+                            msg += data.name[i]+__lang.delete_group_success_after_second;
+                        }else{
+                            msg += '<p class="text-danger">' + data.msg[i] + '</p>';
+                        }
+                    }
+                    layer.msg(msg, {offset:'10px'});
+                    return false;
+                },'json').fail(function() {
+                    layer.msg('{lang do_failed}', {offset:'10px'});
+                });
+            });
+        }
+    });
+    //触发排序事件 
+	layuiModules.table.on('sort(table)', function(obj){
+        if(obj.field == 'usernum' ||  obj.field == 'maxspacesize' || obj.field == 'creater') {
+            layer.msg('该排序结果为前端根据当前页数据进行排序', {offset:'10px'});
+        } else {
+            search_data.sort = obj.field;
+            search_data.order = obj.type;
+            layuiModules.table.reloadData('table', {
+                initSort: obj,
+                where: search_data
+            });
+        }
+	});
+    layuiModules.table.on('rowDouble(table)', function(obj){
+        showDataTemplate(obj);
+    });
+    function executedynamisc_search() {
+        search_data.groupon = $('#groupon').val();
+        search_data.startdate = $('#selectDate').val();
+        search_data.enddate = $('#selectDate1').val();
+        layuiModules.table.reloadData('table', {
+            initSort: {
+                field: search_data.sort,
+                type: search_data.order
+            },
+		  where: search_data,
+		  page: {
+			curr: 1
+		  }
+		});
+    }
+    function showDataTemplate(obj) {
+        var data = obj.dataCache;
+        var template =
+        '<p><strong>{lang group_name}:</strong> ' + data.orgname + '</p>' +
+        '<p><strong>{lang introduce}:</strong> ' + data.desc + '</p>' +
+        '<p><strong>{lang explorer_groupperm_manager}:</strong> ' + data.creater + '</p>' +
+        '<p><strong>{lang membership}:</strong> ' + data.usernum + '</p>' +
+        '<p><strong>{lang create_date}:</strong> ' + data.dateline + '</p>' +
+        '<p><strong>空间大小:</strong> ' + data.maxspacesize + 'M</p>' +
+        '<p><strong>状态:</strong> ' + (data.diron == 1 ? '开启' : '关闭') + '</p>'
+        layer.alert(template, {
+            title: 'ID <strong>' + data.LAY_NUM + '</strong> {lang detail}：'
+        });
+
+    // 标注选中样式
+    obj.tr.addClass('layui-table-click').siblings().removeClass('layui-table-click');
+    }
+});
+</script>

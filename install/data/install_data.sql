@@ -3,18 +3,42 @@
 -- 
 INSERT INTO `dzz_app_market` (`appid`,`mid`, `appname`, `appico`, `appdesc`, `appurl`,`appadminurl`, `noticeurl`, `dateline`, `disp`, `vendor`, `haveflash`, `isshow`, `havetask`, `hideInMarket`, `feature`, `fileext`, `group`, `orgid`, `position`, `system`, `notdelete`, `open`, `nodup`, `identifier`, `app_path`, `available`, `version`, `upgrade_version`, `check_upgrade_time`, `extra`) VALUES
 (1, 1, '管理', 'appico/201712/21/184312rthhhg9oujti9tuu.png', '管理员应用集合，方便管理员管理各个管理应用', '{dzzscript}?mod=appmanagement', '', '', 0, 1, '乐云网络', 0, 1, 1, 0, '', '', 3, 0, 1, 2, 1, 0, 0, 'appmanagement', 'dzz', 1, '2.0', '', 20171115, ''),
-(2, 2, '机构用户', 'appico/201712/21/131016is1wjww2uwvljllw.png', 'Dzz机构用户管理', '{adminscript}?mod=orguser', '', '', 1377753015, 2, '乐云网络', 0, 1, 1, 0, '', '', 3, 0, 0, 2, 1, 0, 0, 'orguser', 'admin', 1, '2.0', '', 20171211, ''),
+(2, 2, '机构用户', 'appico/201712/21/131016is1wjww2uwvljllw.png', 'Dzz机构用户管理', '{dzzscript}?mod=orguser', '', '', 1377753015, 2, '乐云网络', 0, 1, 0, 0, '', '', 1, 0, 1, 2, 1, 1, 0, 'orguser', 'dzz', 1, '2.01', '', 20171211, ''),
 (3, 3, '系统设置', 'appico/201712/21/160754fwfmziiiift3gwsw.png', '系统基础设置', '{adminscript}?mod=setting', '', '', 1377677273, 3, '乐云网络', 0, 1, 1, 0, '', '', 3, 0, 0, 2, 1, 0, 0, 'setting', 'admin', 1, '2.0', '', 20171115, ''),
 (4, 4, '应用市场', 'appico/201712/21/152718k9g2pc6wouwkklwl.png', '应用管理，应用市场，支持应用在线安装，在线升级等', '{adminscript}?mod=appmarket', '', '', 1377674837, 4, '乐云网络', 0, 1, 1, 0, '', '', 3, 0, 0, 2, 1, 0, 0, 'appmarket', 'admin', 1, '2.0', '', 20171115, ''),
 (5, 5, '云设置和管理', 'appico/201712/21/171106u1dk40digrrr79ed.png', '设置和管理第三方云盘、云存储等', '{adminscript}?mod=cloud', '', '', 0, 5, '乐云网络', 0, 1, 1, 0, '', '', 3, 0, 0, 2, 1, 0, 0, 'cloud', 'admin', 1, '2.0', '', 20171115, ''),
-(6, 6, '文件管理', 'appico/201712/21/175535t47bad99b7sssdwq.png', '管理和查看系统所有文件', '{adminscript}?mod=filemanage', '', '', 0, 6, '乐云网络', 0, 1, 1, 0, '', '', 3, 0, 0, 2, 1, 0, 0, 'filemanage', 'admin', 1, '2.0', '', 20180206, ''),
-(7, 7, '分享管理', 'appico/201712/21/165535t47bad99b7qqqdwq.png', '管理和查阅所有分享', '{adminscript}?mod=share', '', '', 0, 7, '乐云网络', 0, 1, 1, 0, '', '', 3, 0, 0, 2, 1, 0, 0, 'share', 'admin', 1, '2.0', '', 20180206, ''),
+(6, 6, '文件管理', 'appico/201712/21/175535t47bad99b7sssdwq.png', '管理和查看系统所有文件', '{dzzscript}?mod=filemanage', '', '', 0, 6, '乐云网络', 0, 1, 0, 0, '', '', 3, 0, 1, 2, 1, 1, 0, 'filemanage', 'dzz', 1, '2.0', '', 20180206, ''),
+(7, 7, '分享管理', 'appico/201712/21/165535t47bad99b7qqqdwq.png', '管理和查阅所有分享', '{dzzscript}?mod=share', '', '', 0, 7, '乐云网络', 0, 1, 0, 0, '', '', 1, 0, 1, 2, 1, 1, 0, 'share', 'dzz', 1, '2.0', '', 20180206, ''),
 (8, 8, '系统日志', 'appico/201712/21/113527zz2665xg7d3h2777.png', 'Dzz 日志记录', '{adminscript}?mod=systemlog', '{adminscript}?mod=systemlog&op=admin', '', 0, 8, '乐云网络', 0, 1, 1, 0, '', '', 3, 0, 0, 2, 1, 0, 0, 'systemlog', 'admin', 1, '2.0', '', 20171115, 'a:2:{s:11:\"installfile\";s:11:\"install.php\";s:13:\"uninstallfile\";s:13:\"uninstall.php\";}'),
 (9, 9, '系统工具', 'appico/201712/21/160537cikgw2v6s6z4scuv.png', '系统维护相关工具集合，如：更新缓存、数据库备份，计划任务，在线升级等', '{adminscript}?mod=system', '', '', 1377677136, 9, '乐云网络', 0, 1, 1, 0, '', '', 3, 0, 0, 2, 1, 0, 0, 'system', 'admin', 1, '2.0', '', 20171115, ''),
-(10, 10, '应用库', 'appico/201712/21/123754pb0s666i6sjws1jc.png', '通过应用库用户选择安装自己需要的应用', '{dzzscript}?mod=market', '', '{dzzscript}?mod=market&op=notice', 1378615073, 10, '乐云网络', 0, 1, 1, 0, '', '', 1, 0, 1, 0, 1, 0, 0, 'market', 'dzz', 0, '2.0', '', 20171115, ''),
 (11, 11, '投票', 'appico/201712/21/150002d834yjjqnq82qj8z.png', 'Dzz 内置投票组件，结合其他应用使用，如新闻中用到投票插件，其他开发者也可以为自己的应用调用这个通用评论插件', '{dzzscript}?mod=dzzvote', '', '', 1378615073, 11, '乐云网络', 0, 0, 1, 0, '', '', 3, 0, 0, 2, 1, 0, 0, 'dzzvote', 'dzz', 1, '2.0', '', 20171115, ''), 
-(12, 12, '评论', 'appico/201712/21/128754pb0s666i6sjws1jc.png', 'Dzz 系统评论组件，结合在其他应用使用，如新闻。其他开发者也可以为自己的应用调用这个通用评论插件', '{dzzscript}?mod=comment', '', '', 1378615073, 12, '乐云网络', 0, 0, 1, 0, '', '', 3, 0, 0, 2, 1, 0, 0, 'comment', 'dzz', 1, '2.0', '', 20171115, ''),
-(13, 37, '用户资料管理', 'appico/201712/21/103805dczcm89b0gi8i9gc.png', '管理用户资料、资料审核、认证等', '{adminscript}?mod=member', '', '', 1378615073, 13, '乐云网络', 0, 1, 1, 0, '', '', 3, 0, 0, 2, 1, 0, 0, 'member', 'admin', 1, '2.0', '', 20171115, '');
+(12, 12, '评论', 'appico/201712/21/128754pb0s666i6sjws1jc.png', 'Dzz 系统评论组件，结合在其他应用使用，如新闻。其他开发者也可以为自己的应用调用这个通用评论插件', '{dzzscript}?mod=comment', '', '', 1378615073, 12, '乐云网络', 0, 1, 0, 0, '', '', 1, 0, 1, 2, 1, 0, 0, 'comment', 'dzz', 1, '2.0', '', 20171115, ''),
+(13, 37, '用户资料管理', 'appico/201712/21/103805dczcm89b0gi8i9gc.png', '管理用户资料、资料审核、认证等', '{adminscript}?mod=member', '', '', 1378615073, 13, '乐云网络', 0, 1, 1, 0, '', '', 3, 0, 0, 2, 1, 0, 0, 'member', 'admin', 1, '2.0', '', 20171115, ''),
+(14, 27, '网盘', 'appico/202411/02/170040bgapsjg4pt4nuee4.png', '企业、团队文件集中管理。主要体现的功能是支持企业部门的组织架构建立共享目录，也支持组的方式灵活建立共享目录。支持文件标签，多版本，评论，详细的目录权限等协作功能', '{dzzscript}?mod=explorer', '', '', 0, 0, '乐云网络', 0, 1, 1, 0, '', '', 1, 0, 1, 0, 1, 0, 0, 'explorer', 'dzz', 1, '2.07', '', 0, ''),
+(15, 25, '图片预览', 'appico/202411/02/184008xbuvo0sh8y1xey8f.png', '简易的图片浏览器', 'dzzjs:OpenPicWin(''{icoid}'')', '', '', 0, 101, '乐云网络', 0, 0, 1, 0, '', 'image', 0, 0, 1, 0, 1, 0, 0, 'OpenPicWin', 'dzz/link', 1, '2.1', '', 0, ''),
+(16, 41, 'DPlayer', 'appico/202411/02/184037v0by6dzb1wwobdy3.png', 'DPlayer，支持MP3,mp4,flv,wav等格式', '{dzzscript}?mod=DPlayer', '', '', 0, 0, '小胡(gitee.com/xiaohu2024)', 0, 0, 1, 0, '', 'mp3,mp4,m4v,flv,mov,webm,ogv,ogg,wav,m3u8,f4v,webmv,mkv,magne', 0, 0, 1, 0, 1, 1, 0, 'DPlayer', 'dzz', 1, '1.2', '', 0, ''),
+(17, 13, 'PDF阅读器', 'appico/202411/02/170328nz056he0mixeezpo.png', '通过HTML5的方式来实现pdf在线预览', 'index.php?mod=pdf', '', '', 0, 17, 'PDS.JS', 0, 0, 1, 0, '', 'pdf,ai,qiniu:doc,qiniu:docx,qiniu:ppt,qiniu:pptx,qiniu:xls,qiniu:xlsx', 0, 0, 1, 0, 1, 0, 0, 'pdf', 'dzz', 1, '2.1', '', 0, '');
+
+--
+-- 转存表中的数据 `dzz_app_open`
+--
+INSERT INTO `dzz_app_open` (`ext`, `appid`, `disp`, `extid`, `isdefault`) VALUES
+('image', 15, 0, 1, 0),
+('mp3', 16, 0, 2, 0),
+('mp4', 16, 0, 3, 0),
+('m4v', 16, 0, 4, 0),
+('flv', 16, 0, 5, 0),
+('webm', 16, 0, 6, 0),
+('ogv', 16, 0, 7, 0),
+('wav', 16, 0, 8, 0),
+('m3u8', 16, 0, 9, 0),
+('f4v', 16, 0, 10, 0),
+('webmv', 16, 0, 11, 0),
+('mkv', 16, 0, 12, 0),
+('magne', 16, 0, 13, 0),
+('pdf', 17, 0, 14, 0),
+('ai', 17, 0, 15, 0);
+
 --
 -- 转存表中的数据 `dzz_app_tag`
 --
@@ -74,15 +98,8 @@ INSERT INTO `dzz_cron` VALUES(4, 0, 'system', '每周清理缓存缩略图', 'cr
 INSERT INTO `dzz_cron` VALUES(5, 0, 'system', '每月清除未用附件', 'cron_clean_copys0_attachment_by_month.php', 1395388548,0, -1, -1, -1, '5	10	15	20	25	30	35	40	45	50	55');
 INSERT INTO `dzz_cron` VALUES(6, 0, 'system', '定时备份数据库', 'cron_database_backup.php', 1460797274, 1460840400, 0, -1, 5, '0');
 INSERT INTO `dzz_cron` VALUES(7, 0, 'system', '定时迁移本地文件到存储位置', 'cron_movetospace_attachment.php', 1536458668, 1536459000, -1, -1, -1, '0	10	20	30	40	50');
-
---
--- 转存表中的数据 `dzz_folder_default`
---
-
---INSERT INTO `dzz_folder_default` VALUES(1, 1, '桌面', 0, 0, 1, 0, 'desktop', '');
---INSERT INTO `dzz_folder_default` VALUES(2, 1, '我的文档', 0, 0, 1, 0, 'document', 'm:desktop');
---INSERT INTO `dzz_folder_default` VALUES(3, 1, '任务栏', 0, 0, 1, 10, 'dock', '');
---INSERT INTO `dzz_folder_default` VALUES(4, 1, '回收站', 0, 0, 1, 9999, 'recycle', 'm:desktop');
+INSERT INTO `dzz_cron` VALUES(8,1,'system','限时操作清理','cron_threadexpiry_hourly.php',1755674400,1756069200,-1,-1,-1,'0');
+INSERT INTO `dzz_cron` VALUES(9,1,'app','回收站自动删除任务','dzz:explorer:cron_explorer_recycle.php',1746603582,1746604800,-1,-1,-1,'0');
 
 --
 -- 转存表中的数据 `dzz_hooks`
@@ -121,31 +138,30 @@ INSERT INTO `dzz_hooks` (`id`, `app_market_id`, `name`, `description`, `type`, `
 --
 -- 转存表中的数据 `dzz_usergroup`
 --
-
-INSERT INTO `dzz_usergroup` VALUES(1, 1, 'system', 'private', '管理员', 0, 0, 9, '', '', 2, 1, 1, 1, 0, 0, 10);
-INSERT INTO `dzz_usergroup` VALUES(2, 2, 'system', 'private', '机构和部门管理员', 0, 0, 8, '', '', 1, 1, 1, 1, 0, 0, 10);
-INSERT INTO `dzz_usergroup` VALUES(3, 3, 'system', 'private', '部门管理员', 0, 0, 7, '', '', 1, 1, 1, 1, 0, 0, 10);
-INSERT INTO `dzz_usergroup` VALUES(4, 0, 'system', 'private', '禁止发言', 0, 0, 0, '', '', 1, 1, 0, 0, 0, 0, 0);
-INSERT INTO `dzz_usergroup` VALUES(5, 0, 'system', 'private', '禁止访问', 0, 0, 0, '', '', 0, 1, 0, 0, 0, 0, 0);
-INSERT INTO `dzz_usergroup` VALUES(6, 0, 'system', 'private', '禁止 IP', 0, 0, 0, '', '', 0, 1, 0, 0, 0, 0, 0);
-INSERT INTO `dzz_usergroup` VALUES(7, 0, 'system', 'private', '游客', 0, 0, 0, '', '', 1, 1, 0, 0, 0, 0, 10);
-INSERT INTO `dzz_usergroup` VALUES(8, 0, 'system', 'private', '等待验证成员', 0, 0, 0, '', '', 1, 1, 0, 0, 0, 0, 0);
-INSERT INTO `dzz_usergroup` VALUES(9, 0, 'system', 'private', '普通成员', 0, 0, 0, '', '', 1, 1, 0, 0, 0, 0, 0);
-INSERT INTO `dzz_usergroup` VALUES(10, 0, 'system', 'private', '信息录入员', 0, 0, 0, '', '', 1, 1, 0, 0, 0, 0, 0);
+INSERT INTO `dzz_usergroup` VALUES(1, 1, 'system', 'private', '管理员', 9, '', '', '');
+INSERT INTO `dzz_usergroup` VALUES(2, 2, 'system', 'private', '机构和部门管理员', 8, '', '', '');
+INSERT INTO `dzz_usergroup` VALUES(3, 3, 'system', 'private', '部门管理员', 7, '', '', '');
+INSERT INTO `dzz_usergroup` VALUES(4, 0, 'system', 'private', '禁止发言', 0, '', '', '');
+INSERT INTO `dzz_usergroup` VALUES(5, 0, 'system', 'private', '禁止访问', 0, '', '', '');
+INSERT INTO `dzz_usergroup` VALUES(6, 0, 'system', 'private', '禁止 IP', 0, '', '', '');
+INSERT INTO `dzz_usergroup` VALUES(7, 0, 'system', 'private', '游客', 0, '', '', '');
+INSERT INTO `dzz_usergroup` VALUES(8, 0, 'system', 'private', '等待验证成员', 0, '', '', '');
+INSERT INTO `dzz_usergroup` VALUES(9, 0, 'system', 'private', '普通成员', 0, '', '', '');
+INSERT INTO `dzz_usergroup` VALUES(10, 0, 'system', 'private', '信息录入员', 0, '', '','');
 
 --
 -- 转存表中的数据 `dzz_usergroup_field`
 --
 
-INSERT INTO `dzz_usergroup_field` VALUES(1, 0, '', 0, 524287);
-INSERT INTO `dzz_usergroup_field` VALUES(2, 0, '', 0, 524287);
-INSERT INTO `dzz_usergroup_field` VALUES(3, 0, '', 0, 524287);
+INSERT INTO `dzz_usergroup_field` VALUES(1, 0, '', 0, 1847295);
+INSERT INTO `dzz_usergroup_field` VALUES(2, 0, '', 0, 1847295);
+INSERT INTO `dzz_usergroup_field` VALUES(3, 0, '', 0, 1847295);
 INSERT INTO `dzz_usergroup_field` VALUES(4, -1, '', 0, 7);
 INSERT INTO `dzz_usergroup_field` VALUES(5, -1, '', 0, 1);
 INSERT INTO `dzz_usergroup_field` VALUES(6, -1, '', 0, 1);
 INSERT INTO `dzz_usergroup_field` VALUES(7, -1, 'gif, jpg, jpeg, png', 0, 7);
 INSERT INTO `dzz_usergroup_field` VALUES(8, -1, '', 0, 7);
-INSERT INTO `dzz_usergroup_field` VALUES(9, 10240, '', 0, 524287);
+INSERT INTO `dzz_usergroup_field` VALUES(9, 10240, '', 0, 1847295);
 INSERT INTO `dzz_usergroup_field` VALUES(10, 10240, '', 0, 229039);
 
 
@@ -169,7 +185,7 @@ INSERT INTO `dzz_setting` VALUES('bbrules', '0');
 INSERT INTO `dzz_setting` VALUES('bbrulesforce', '0');
 INSERT INTO `dzz_setting` VALUES('bbrulestxt', '');
 INSERT INTO `dzz_setting` VALUES('seccodedata', 'a:13:{s:4:"type";s:1:"0";s:5:"width";s:3:"150";s:6:"height";s:2:"34";s:7:"scatter";s:1:"0";s:10:"background";s:1:"1";s:10:"adulterate";s:1:"1";s:3:"ttf";s:1:"1";s:5:"angle";s:1:"0";s:7:"warping";s:1:"0";s:5:"color";s:1:"1";s:4:"size";s:1:"0";s:6:"shadow";s:1:"1";s:8:"animator";s:1:"1";}');
-INSERT INTO `dzz_setting` VALUES('bbname', 'dzzoffice');
+INSERT INTO `dzz_setting` VALUES('bbname', 'DzzOffice');
 INSERT INTO `dzz_setting` VALUES('pwlength', '0');
 INSERT INTO `dzz_setting` VALUES('strongpw', 'a:0:{}');
 INSERT INTO `dzz_setting` VALUES('pwdsafety', '0');
@@ -187,7 +203,7 @@ INSERT INTO `dzz_setting` VALUES('boardlicensed', '0');
 INSERT INTO `dzz_setting` VALUES('leavealert', '0');
 INSERT INTO `dzz_setting` VALUES('bbclosed', '0');
 INSERT INTO `dzz_setting` VALUES('closedreason', '网站升级中....');
-INSERT INTO `dzz_setting` VALUES('sitename', 'dzzoffice');
+INSERT INTO `dzz_setting` VALUES('sitename', 'DzzOffice');
 INSERT INTO `dzz_setting` VALUES('dateconvert', '1');
 
 INSERT INTO `dzz_setting` VALUES('smcols', '8');
@@ -353,13 +369,13 @@ INSERT INTO dzz_user_profile_setting VALUES('interest', 0, 0, 0, '兴趣爱好',
 -- 转存表中的数据 `dzz_user_field`
 --
 
-INSERT INTO `dzz_user_field` (`uid`, `docklist`, `screenlist`, `applist`, `noticebanlist`, `iconview`, `iconposition`, `direction`, `autolist`, `taskbar`, `dateline`, `updatetime`, `attachextensions`, `maxattachsize`, `usesize`, `addsize`, `buysize`, `wins`, `perm`, `privacy`) VALUES
-(1, '', '', '1,10', '', 2, 0, 0, 1, 'bottom', 0, 0, '-1', -1, 0, 0, 0, '', 0, '');
+INSERT INTO `dzz_user_field` (`uid`, `applist`, `noticebanlist`, `iconview`, `direction`, `dateline`, `updatetime`, `attachextensions`, `maxattachsize`, `usesize`, `addsize`, `buysize`, `perm`, `privacy`) VALUES
+(1, '1,10', '', 2, 0, 0, 0, '-1', -1, 0, 0, '', 0, '');
 
 INSERT INTO `dzz_resources_permgroup` (`id`, `pername`, `perm`, `off`, `default`, `system`) VALUES
 (1, '只读', 7, 0, 1, 1),
 (2, '只写', 10243, 0, 0, 1),
-(3, '完全控制', 798719, 0, 0, 1),
+(3, '完全控制', 1847295, 0, 0, 1),
 (4, '仅下载', 1927, 0, 0, 1),
 (5, '读写1', 10927, 0, 0, 1),
 (6, '读写2', 12271, 0, 0, 1),

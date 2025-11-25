@@ -148,27 +148,13 @@ _selectfile.prototype.CreateIcos = function (data, flag) {
     //创建图标列表
     if (data.flag) {
         if (!data.img) {
-            data.img = 'dzz/styles/thame/' + _explorer.thame.system.folder + '/system/' + data.flag + '.png';
+            data.img = 'dzz/images/default/system/' + data.flag + '.png';
         }
         data.error = 'dzz/images/default/system/' + data.flag + '.png';
     } else if (data.type === 'folder') {
-        if (data.gid > 0) {
-            data.icon = data.img ? data.img : data.icon;
-            data.error = data.icon || 'dzz/images/default/system/folder-read.png';
-            data.img = data.icon ? data.icon.replace('dzz/images/default', 'dzz/styles/thame/' + _explorer.thame.system.folder) : 'dzz/styles/thame/' + _explorer.thame.system.folder + '/system/folder-read.png';
-        } else {
-            data.icon = data.img ? data.img : data.icon;
-            data.error = data.icon || 'dzz/images/default/system/folder.png';
-            data.img = data.icon ? ((data.icon).replace('dzz/images/default', 'dzz/styles/thame/' + _explorer.thame.system.folder)) : 'dzz/styles/thame/' + _explorer.thame.system.folder + '/system/folder.png';
-        }
-    } else if (data.type === 'shortcut' && data.ttype === 'folder') {
-        if (data.tdata.gid > 0) {
-            data.error = data.tdata.img || 'dzz/images/default/system/folder-read.png';
-            data.img = (data.tdata.img + '').replace('dzz/images/default', 'dzz/styles/thame/' + _explorer.thame.system.folder);
-        } else {
-            data.error = data.tdata.img || 'dzz/images/default/system/folder.png';
-            data.img = data.tdata.img ? ((data.tdata.img + '').replace('dzz/images/default', 'dzz/styles/thame/' + _explorer.thame.system.folder)) : 'dzz/styles/thame/' + _explorer.thame.system.folder + '/system/folder.png';
-        }
+        data.icon = data.img ? data.img : data.icon;
+        data.error = data.icon || 'dzz/images/default/system/folder.png';
+        data.img = data.icon ? data.icon : 'dzz/images/default/system/folder.png';
     } else {
         data.error = 'dzz/images/default/icodefault.png';
     }
@@ -515,12 +501,7 @@ _selectfile.Open = function (rid, extid, title) {
         extid = getExtOpen(data, true);
     }
     if (extid) {
-        if (_explorer.extopen.all[extid].appid > 0 && _explorer.sourcedata.app[_explorer.extopen.all[extid].appid]['available'] < 1) {
-            Alert(__lang.regret_app + _explorer.sourcedata.app[_explorer.extopen.all[extid].appid]['appname'] + __lang.already_close, 5, null, null, 'info');
-            return;
-        }
         var extdata_url = extopen_replace(data, extid);
-        //var app=_explorer.sourcedata.app[_explorer.extopen.all[extid].appid];
         if (extdata_url) {
             extdata_url = extdata_url.replace(/{\w+}/g, '');
             if (extdata_url.indexOf('dzzjs:OpenPicWin') === 0) {
@@ -1228,7 +1209,7 @@ _selectfile.property = function (rid, isfolder) {
         }
         path = encodeURIComponent(dpaths.join(','));
     }
-    showWindow('property', _explorer.appUrl + '&do=ajax&operation=property&paths=' + path);
+    showWindow('property', _explorer.appUrl + '&do=ajax&operation=property&paths=' + path,'get',0);
 };
 _selectfile.NewIco = function (type, fid) {
     if (!fid && !_selectfile.fid) {
@@ -1247,9 +1228,11 @@ _selectfile.NewIco = function (type, fid) {
 		  	}else{
 		  		top.showDialog(data.error);
 		  	}
-		  },'json');
+		  },'json').fail(function (jqXHR, textStatus, errorThrown) {
+            showmessage(__lang.do_failed, 'error', 3000, 1);
+        });
     } else if (type === 'newLink') {
-        showWindow('newLink', _explorer.appUrl + '&do=ajax&operation=' + type + '&fid=' + fid);
+        showWindow('newLink', _explorer.appUrl + '&do=ajax&operation=' + type + '&fid=' + fid,'get',0);
     } else {
         $.post(_explorer.appUrl + '&do=ajax&operation=newIco&type=' + type, {
             'fid': fid
@@ -1261,7 +1244,9 @@ _selectfile.NewIco = function (type, fid) {
             } else {
                 top.showDialog(data.error);
             }
-        }, 'json');
+        }, 'json').fail(function (jqXHR, textStatus, errorThrown) {
+            showmessage(__lang.do_failed, 'error', 3000, 1);
+        });
     }
 };
 _selectfile.glow = function (el) {
@@ -1395,9 +1380,9 @@ _selectfile.copy = function (rid) {
         } else {
             top.showmessage(json.msg, 'error', 3000, 1, 'right-bottom');
         }
-
-
-    }, 'json');
+    }, 'json').fail(function (jqXHR, textStatus, errorThrown) {
+        showmessage(__lang.do_failed, 'error', 3000, 1);
+    });
 };
 //文件剪切
 _selectfile.cut = function (rid) {
@@ -1459,8 +1444,9 @@ _selectfile.cut = function (rid) {
         } else {
             top.showmessage(json.msg, 'error', 3000, 1, 'right-bottom');
         }
-
-    }, 'json');
+    }, 'json').fail(function (jqXHR, textStatus, errorThrown) {
+        showmessage(__lang.do_failed, 'error', 3000, 1);
+    });
 };
 //粘贴
 _selectfile.paste = function (fid) {
@@ -1497,7 +1483,9 @@ _selectfile.paste = function (fid) {
         } else {
             top.showmessage('粘贴成功', 'success', 3000, 1);
         }
-    }, 'json');
+    }, 'json').fail(function (jqXHR, textStatus, errorThrown) {
+        showmessage(__lang.do_failed, 'error', 3000, 1);
+    });
 
 };
 _selectfile.delIco = function (rid, noconfirm) {
@@ -1509,8 +1497,8 @@ _selectfile.delIco = function (rid, noconfirm) {
     }
     var icosdata = _explorer.sourcedata.icos[rid];
     if (!noconfirm) {
-        //var finallydelete = (_explorer.deletefinally == 1) ? true:false;
-        var finallydelete = false;
+        var finallydelete = (_explorer.deletefinally == 1) ? true:false;
+        //var finallydelete = false;
         if (_selectfile.selectall.icos.length > 0 && jQuery.inArray(rid, _selectfile.selectall.icos) > -1) {
             if (_explorer.sourcedata.icos[_selectfile.selectall.icos[0]].isdelete > 0 || (_explorer.sourcedata.icos[_selectfile.selectall.icos[0]].bz && _explorer.sourcedata.icos[_selectfile.selectall.icos[0]].bz)) {
                 top.showDialog((finallydelete) ? __lang.js_finallydelete_selectall : __lang.js_delete_selectall,'confirm','' ,function () {
@@ -1598,7 +1586,9 @@ _selectfile.delIco = function (rid, noconfirm) {
         }
         _selectfile.removeridmore(rids);
 
-    }, 'json');
+    }, 'json').fail(function (jqXHR, textStatus, errorThrown) {
+        showmessage(__lang.do_failed, 'error', 3000, 1);
+    });
 };
 _selectfile.removerid = function (rid) {
     var data = _explorer.sourcedata.icos[rid];

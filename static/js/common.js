@@ -9,22 +9,23 @@
 
 var BROWSER = {};
 var USERAGENT = navigator.userAgent.toLowerCase();
-browserVersion({'ie':'msie','edge':'edge','rv':'rv','firefox':'','chrome':'','opera':'','safari':'','mozilla':'','webkit':'','maxthon':'','qq':'qqbrowser','ie11':'trident'});
+browserVersion({'ie':'msie','trident':'','edge':'edge','rv':'rv','firefox':'','chrome':'','opera':'','safari':'','mozilla':'','webkit':'','maxthon':'','qq':'qqbrowser','ie11':'trident'});
 if(BROWSER.ie11){
 	BROWSER.ie=11;
 	BROWSER.rv=11;
 }else{
 	BROWSER.rv=0;
 }
-if(BROWSER.safari) {
+if(BROWSER.safari || BROWSER.rv) {
 	BROWSER.firefox = true;
 }
 BROWSER.opera = BROWSER.opera ? opera.version() : 0;
 HTMLNODE = document.getElementsByTagName('head')[0].parentNode;
-if(BROWSER.ie) {
+if(BROWSER.ie || BROWSER.trident) {
 	BROWSER.iemode = parseInt(typeof document.documentMode != 'undefined' ? document.documentMode : BROWSER.ie);
-	HTMLNODE.className = 'ie_all ie' + BROWSER.iemode;
+	HTMLNODE.className = (BROWSER.iemode<9?'ie_all ':'') +'ie' + BROWSER.iemode;
 }
+
 var CSSLOADED = [];
 var JSLOADED = [];
 var JSMENU = [];
@@ -305,7 +306,7 @@ function preg_replace(search, replace, str, regswitch) {
 }
 
 function htmlspecialchars(str) {
-	return preg_replace(['&', '<', '>', '"'], ['&', '<', '>', '"'], str);
+	return preg_replace(['&', '<', '>', '"'], ['&amp;', '&lt;', '&gt;', '&quot;'], str);
 }
 
 function display(id) {
@@ -1122,7 +1123,9 @@ function showMenu(v) {
 				if(_all.length) {
 					for(j = 0; j < _all.length; j++) {
 						if((!_all[j]['type'] || _all[j]['type'] != 'hidden') && hasshow(_all[j])) {
-							_all[j].className += ' hidefocus';
+							if(_all[j].className.indexOf('hidefocus') == -1) {
+								_all[j].className += ' hidefocus';
+							}
 							_all[j].focus();
 							focused = true;
 							var cobj = _all[j];
@@ -1410,12 +1413,6 @@ function fetchOffset(obj, mode) {
 	return {'left' : left_offset, 'top' : top_offset};
 }
 
-
-
-
-
-
-
 function showError(msg) {
 	var p = /<script[^\>]*?>([^\x00]*?)<\/script>/ig;
 	msg = msg.replace(p, '');
@@ -1428,10 +1425,6 @@ function hideWindow(k, all, clear) {
 	all = isUndefined(all) ? 1 : all;
 	clear = isUndefined(clear) ? 1 : clear;
 	jQuery('#fwin_' + k).modal('hide').remove();
-	/*hideMenu('fwin_' + k, 'win');
-	if(clear && document.getElementById('fwin_' + k)) {
-		document.getElementById('append_parent').removeChild(document.getElementById('fwin_' + k));
-	}*/
 	if(all) {
 		jQuery('.modal.fwinmask').modal('hide').remove();
 	}
@@ -1595,7 +1588,6 @@ function simulateSelect(selectId, widthvalue) {
 	};
 }
 
-
 function ctrlEnter(event, btnId, onlyEnter) {
 	if(isUndefined(onlyEnter)) onlyEnter = 0;
 	if((event.ctrlKey || onlyEnter) && event.keyCode == 13) {
@@ -1604,8 +1596,6 @@ function ctrlEnter(event, btnId, onlyEnter) {
 	}
 	return true;
 }
-
-
 
 function updatestring(str1, str2, clear) {
 	str2 = '_' + str2 + '_';
@@ -1634,12 +1624,6 @@ function setCopy(text, msg){
 	}
 }
 
-
-
-
-
-
-
 var secST = new Array();
 
 function strLenCalc(obj, checklen, maxlen) {
@@ -1656,7 +1640,6 @@ function strLenCalc(obj, checklen, maxlen) {
 	}
 }
 
-
 if(BROWSER.ie && BROWSER.ie<11) {
 	try{document.documentElement.addBehavior("#default#userdata");}catch(e){}
 }
@@ -1668,7 +1651,6 @@ function updateseccode(idhash, play) {
 			if(secST['code_' + idhash]) {
 				clearTimeout(secST['code_' + idhash]);
 			}
-			document.getElementById('checkseccodeverify_' + idhash).innerHTML = '';
 			ajaxget('misc.php?mod=seccode&action=update&idhash=' + idhash, 'seccode_' + idhash, null, '', '', function() {
 				secST['code_' + idhash] = setTimeout(function() {document.getElementById('seccode_' + idhash).innerHTML = '<span class="btn btn-link" onclick="updateseccode(\''+idhash+'\')">'+__lang.refresh_verification_code+'</span>';}, 180000);
 			});
@@ -1677,40 +1659,6 @@ function updateseccode(idhash, play) {
 		eval('window.document.seccodeplayer_' + idhash + '.SetVariable("isPlay", "1")');
 	}
 }
-
-function checksec(type, idhash, showmsg, recall) {
-	var showmsg = !showmsg ? 0 : showmsg;
-	var secverify = document.getElementById('sec' + type + 'verify_' + idhash).value;
-	if(!secverify) {
-		return;
-	}
-	var x = new Ajax('XML', 'checksec' + type + 'verify_' + idhash);
-	x.loading = '';
-	document.getElementById('checksec' + type + 'verify_' + idhash).innerHTML = '<span class="dzz dzz-autorenew dzz-spin"></span>';
-	x.get('misc.php?mod=sec' + type + '&action=check&inajax=1&&idhash=' + idhash + '&secverify=' + (BROWSER.ie && document.charset == 'utf-8' ? encodeURIComponent(secverify) : secverify), function(s){
-		var obj = document.getElementById('checksec' + type + 'verify_' + idhash);
-		if(obj){
-			obj.style.display = '';
-			if(s.substr(0, 7) == 'succeed') {
-				obj.innerHTML = '<span class="dzz dzz-done"></span>';
-				jQuery(obj).closest('.seccode-wrapper').find('.help-msg').addClass('chk_right');
-				if(showmsg) {
-					recall(1);
-				}
-			} else {
-				jQuery(obj).closest('.seccode-wrapper').find('.help-msg').removeClass('chk_right');
-				obj.innerHTML = '<span class="dzz dzz-close"></span>';
-				if(showmsg) {
-					if(type == 'code') {
-						showError(__lang.verification_error_reset);
-					}
-					recall(0);
-				}
-			}
-		}
-	});
-}
-
 
 function showdistrict(container, elems, totallevel, changelevel, containertype) {
 	var getdid = function(elem) {
@@ -1755,8 +1703,6 @@ function showbirthday(){
 	}
 	el.value = birthday;
 }
-
-
 
 var tipTimer=[];
 function showTip(ctrlobj,pos,msg) {
@@ -2039,10 +1985,8 @@ function showWindow(k, url, mode, cache, showWindow_callback,disablebacktohide) 
 	cache = isUndefined(cache) ? 1 : cache;
 	var menuid = 'fwin_' + k;
 	var menuObj = document.getElementById(menuid);
-	var drag = null;
 	var loadingst = null;
-	var hidedom = '';
-
+	// 不允许浮动窗口时直接跳转
 	if(disallowfloat && disallowfloat.indexOf(k) != -1) {
 		if(BROWSER.ie) url += (url.indexOf('?') != -1 ?  '&' : '?') + 'referer=' + escape(location.href);
 		location.href = url;
@@ -2064,7 +2008,7 @@ function showWindow(k, url, mode, cache, showWindow_callback,disablebacktohide) 
 			ajaxpost(url, 'fwin_content_' + k, '', '', '', function() {initMenu();show();});
 		}
 		if(parseInt(BROWSER.ie) != 6) {
-			loadingst = setTimeout(function() {showDialog('', 'info', '<img src="' + IMGDIR + '/loading.gif"> '+__lang.please_wait)}, 500);
+			loadingst = setTimeout(function() {showDialog('正在为您加载中...', 'info', '<img src="' + IMGDIR + '/loading.gif"> '+__lang.please_wait)}, 500);
 		}
 		if(mode == 'html'){
 			document.getElementById('fwin_content_' + k).innerHTML = url;
@@ -2074,18 +2018,6 @@ function showWindow(k, url, mode, cache, showWindow_callback,disablebacktohide) 
 	};
 	var initMenu = function() {
 		clearTimeout(loadingst);
-		/*var objs = menuObj.getElementsByTagName('*');
-		var fctrlidinit = false;
-		for(var i = 0; i < objs.length; i++) {
-			if(objs[i].id) {
-				objs[i].setAttribute('fwin', k);
-			}
-			if(objs[i].className == 'flb' && !fctrlidinit) {
-				if(!objs[i].id) objs[i].id = 'fctrl_' + k;
-				drag = objs[i].id;
-				fctrlidinit = true;
-			}
-		}*/
 	};
 	var show = function() {
 		hideMenu('fwin_dialog', 'dialog');
@@ -2095,17 +2027,6 @@ function showWindow(k, url, mode, cache, showWindow_callback,disablebacktohide) 
 		var html='<div class="modal-dialog modal-center">'
 				 +'	<div class="modal-content" >'
 				 +'  <div class="modal-content-inner" id="fwin_content_'+k+'">'
-				/* +'	  <div class="modal-header">'
-				 +'		<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">×</span><span class="sr-only">Close</span></button>'
-				 +'		<h4 class="modal-title" id="fwin_title_'+k+'">加载中,请稍候</h4>'
-				 +'	  </div>'*/
-				/* +'	  <div class="m_c modal-body" id="fwin_content_' + k + '">'
-				 +'		<table   height="100%" width="100%"><tbody><tr><td align="center" valign="middle"><div class="loading_img"><div class="loading_process"></div></div></td></tr></tbody></table>'
-				 +'	  </div>'
-			   +'	  <div class="modal-footer">'
-				 +'		<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>'
-				 +'		<button type="button" class="btn btn-primary">Save changes</button>'
-				 +'	  </div>'*/
 				 +'	 </div>'
 				 +'	</div>'
 				 +'</div>';
@@ -2116,7 +2037,6 @@ function showWindow(k, url, mode, cache, showWindow_callback,disablebacktohide) 
 		if(disablebacktohide){
 			menuObj.setAttribute('data-backdrop','static');
 			menuObj.setAttribute('data-keyboard','false');
-			
 		} 
 		menuObj.style.display = 'none';
 		document.body.appendChild(menuObj);
@@ -2162,7 +2082,7 @@ function showmessage(msg,type,timeout,haveclose,position,callback,maxwidth,maxhe
 		el=jQuery('#message_tip_box');
 	} 
 	var el1=jQuery('#message_tip_alert');
-	 el.attr('sytle','').attr('class','message_tip_box position-'+position);
+	 el.attr('style','').attr('class','message_tip_box position-'+position);
 	 el.css({'height':'auto','max-height':maxheight,width:maxwidth,margin:'0,auto','overflow':'hidden'});
 	
 	//设置消息框的类型（不同类型背景颜色不同）；
@@ -2173,18 +2093,18 @@ function showmessage(msg,type,timeout,haveclose,position,callback,maxwidth,maxhe
 	}else{
 		jQuery('#message_tip_alert').attr('class','alert');
 	}*/	
-	if(jQuery.inArray(type,types)<0) type='';
+	if(jQuery.inArray(type,types)<0) type='info';
 	if(type) {
 		jQuery('#message_tip_alert').attr('class',' alert alert-'+type);
 		if(type == 'info'){
-		var spantype ='<span class="dzz dzz-info-outline spantype" style="color:#3d91ea;"></span>'	;
-			}else if(type == 'success'){
-				var spantype ='<span class="dzz dzz-notification-success spantype" style="color:#48c874;"></span>';	
-			}else if(type == 'danger'){
-				var spantype ='<span class="dzz dzz-clear spantype" style="color:#f04836;"></span>';
-			}else if(type == 'warning'){
-				var spantype ='<span class="dzz dzz-error spantype" style="color:#fdc318;"></span>';
-			}
+			var spantype ='<span class="dzz dzz-info-outline spantype" style="color:#3d91ea;"></span>'	;
+		}else if(type == 'success'){
+			var spantype ='<span class="dzz dzz-notification-success spantype" style="color:#48c874;"></span>';	
+		}else if(type == 'danger'){
+			var spantype ='<span class="dzz dzz-clear spantype" style="color:#f04836;"></span>';
+		}else if(type == 'warning'){
+			var spantype ='<span class="dzz dzz-error spantype" style="color:#fdc318;"></span>';
+		}
 	}
 	else  {
 		jQuery('#message_tip_alert').attr('class','alert alert-warning');}
@@ -2250,7 +2170,7 @@ function showmessage(msg,type,timeout,haveclose,position,callback,maxwidth,maxhe
 			} 
 			//增加关闭事件
 			el1.find('button.close').off('click').on('click',function(){
-				el.animate({left:-width},delay,function(){
+				el.animate({right:-width},delay,function(){
 					el.remove();
 				});
 				if(typeof(callback)=='function') callback();//关闭时触发回调函数；
@@ -2862,4 +2782,35 @@ function htmlspecialchars_decode (string, quote_style) {
   string = string.replace(/&/g, '&');
 
   return string;
+};
+function dzzNotification() {
+	var h5n = new Object();
+
+	h5n.issupport = function() {
+		return 'Notification' in window;
+	};
+
+	h5n.shownotification = function(replaceid, url, imgurl, subject, message) {
+		if (Notification.permission === 'granted') {
+			sendit();
+		} else if (Notification.permission !== 'denied') {
+			Notification.requestPermission().then(function (perm) {
+				if (perm === 'granted') {
+					sendit();
+				}
+			});
+		}
+		function sendit() {
+			var n = new Notification(subject, {
+				tag: replaceid,
+				icon: imgurl,
+				body: message
+			});
+			n.onclick = function (e) {
+				e.preventDefault();
+				window.open(url, '_blank');
+			};
+		}
+	};
+	return h5n;
 };

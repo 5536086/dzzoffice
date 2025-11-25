@@ -36,8 +36,25 @@ if ($testid) $test = C::t('test') -> fetch($testid);
 /*如果class/table/table_test.php不存在，也可以使用如下的方法来读取；
  $test=DB::fetch_first("select * from %t where testid = %d ",array('test',$testid));
  */
-include  template('index');
-//调用./template/test.htm模板；
-/*//调用./template/sub/demo.htm 模板,按下面的方式；
-include template('sub/demo');
-/*
+
+if($_GET['path']) {//判断是否以打开文件的方式访问
+	$path=dzzdecode($_GET['path']);//解码文件
+	$meta=IO::getMeta($path);//获取文件信息
+	if($meta['error']) showmessage($meta['error']);//无法获取文件信息就返回提示并退出
+	$src=IO::getFileUri($path);//获取文件地址
+	$file=$_G['siteurl'].'index.php?mod=io&op=getStream&path='.$_GET['path'].'&filename='.$meta['name'];//获取文件流地址
+	if(!perm_check::checkperm('download',$meta)){//判断文件是否有下载权限
+		$perm_download=0;//没有下载权限
+		$perm_print=0;//既然没有下载权限，那么默认也要没有打印权限
+	}else{
+		$perm_download=1;//有下载权限
+		$perm_print=1;//既然有下载权限，那么默认也要有打印权限
+	}
+	include template('view');
+	exit();
+}else{
+	include template('index');
+}
+//include template('test'); 调用./template/test.htm 模板
+//如果需要调用其他目录下的模板文件，可以使用如下方式
+//include template('test/test1'); 调用./template/test/test1.htm 模板

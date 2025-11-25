@@ -39,7 +39,6 @@ _explorer = function (json) {
         _explorer.defaultexttype = '';
     }
     _explorer.defaultfilename = json.defaultfilename || '';
-    _explorer.thame = json.thame || {};
     _explorer.infoRequest = 0;
     _explorer.deletefinally = json.deletefinally || 0;
     _explorer.cut = json.cut || {
@@ -49,6 +48,7 @@ _explorer = function (json) {
 };
 _explorer.appUrl = 'index.php?mod=system&op=fileselection';
 _explorer.hash = '';
+_explorer.loadhtml = '<div class="nothing_message"><div class="emptyPage"><img src="static/image/common/loading.svg" alt="" /></div></div>';
 _explorer.getConfig = function (url, callback) {
     $.getJSON(url + '&t=' + new Date().getTime(), function (json) {
         new _explorer(json);
@@ -121,7 +121,7 @@ _explorer.set_address = function (path) {
     var patharr = pathstr.split('\\');
     var address_html = '';
     for (var o in patharr) {
-        address_html += ' <li class="routes"> <a href="javascript:;">' + patharr[o] + '</a> <span class="dzz dzz-chevron-right"></span></li>';
+        address_html += ' <li class="routes"> <a href="javascript:;">' + htmlspecialchars(patharr[o]) + '</a> <span class="dzz dzz-chevron-right"></span></li>';
     }
     $('.select-address div.address-field').html(address_html);
 }
@@ -316,19 +316,23 @@ _explorer.routerule = function (path, prefix) {
             if (!isNaN(parseInt(data.success['gid']))) {
                 hash = 'group&gid=' + data.success['gid'] + (data.success['fid'] ? '&fid=' + data.success['fid'] : '');
             } else {
-                hash = 'home&fid=' + data.success['fid'];
+                hash = 'home&do=file&fid=' + data.success['fid'];
             }
             location.hash = hash;
-        }
+        } else if (data.error) {
+			showmessage('没有找到该路径', 'info', 3000, 1);
+		} else {
+			showmessage(__lang.do_failed, 'error', 3000, 1);
+		}
     }, 'json');
     return false;
 };
 _explorer.hashHandler = function () { //处理页面hash变化
     var hash = location.hash;
     hash = hash.replace(/^#/i, '');
+    _explorer.jstree_select(hash);
     if (!hash) {
-        hash = _explorer.defaultselect;
-        _explorer.jstree_select(hash);
+        return false;
     }
     if (hash === _explorer.hash) {
         return false;
@@ -343,19 +347,15 @@ _explorer.hashHandler = function () { //处理页面hash变化
     return false;
 };
 
-_explorer.loading = function (container, flag) { //右侧加载效果
-    if (flag === 'hide') {
-        container.find('.rightLoading').remove();
-    } else {
-        container.append('<div class="rightLoading"></div>');
-    }
-};
 _explorer.getRightContent = function (hash, container) { //处理右侧页面加载
-    _explorer.loading(container);
-    _explorer.rightLoading = 1;
+    $('#middleconMenu').html(_explorer.loadhtml);
     $('.document-data').removeClass('actives');
     $('[data-hash="' + hash + '"]').addClass('actives');
-    var url = _explorer.appUrl + '&do=file&' + hash;
+    if (template === '1') {
+        var url = _explorer.appUrl + '&template=1&do=file&' + hash;
+    } else {
+        var url = _explorer.appUrl + '&do=file&' + hash;
+    }
     jQuery('#middleconMenu').load(url, function () {
         $(document).trigger('ajaxLoad.middleContent', [hash]);
     });
@@ -368,6 +368,9 @@ _explorer.jstree_select = function (hash) {
     }
     if (!hash) {
         hash = $('#position').find("li[flag='home']").attr('hashs');
+    }
+    if (!hash) {
+        hash = '';
     }
     var op = hash.replace(/&(.+?)$/ig, ''); //(hash,'op');
     var fid = _explorer.getUrlParam(hash, 'fid');

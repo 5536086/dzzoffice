@@ -1,0 +1,119 @@
+<div class="accordion" id="accordionPanelsStayOpenExample">
+	<div class="accordion-item">
+		<h2 class="accordion-header" id="panelsStayOpen-headingOne">
+			<button class="accordion-button" type="button" data-toggle="collapse" data-target="#panelsStayOpen-collapseOne" aria-expanded="true" aria-controls="panelsStayOpen-collapseOne">服务器信息</button>
+		</h2>
+		<div id="panelsStayOpen-collapseOne" class="accordion-collapse collapse show" aria-labelledby="panelsStayOpen-headingOne">
+			<div class="accordion-body">
+				<div class="row">
+					<div class="col-sm-12">
+						<strong>服务器系统环境: </strong><span><!--{eval echo PHP_OS.' / '.php_uname();}--></span>
+					</div>
+					<div class="col-sm-12">
+						<strong>服务器数据库: </strong><span>MySQL <!--{eval echo helper_dbtool::dbversion();}-->，{$_G['mysql_driver']} ，引擎：<!--{if $_G['config']['db']['common']['engine']}-->$_G['config']['db']['common']['engine']<!--{else}-->myisam<!--{/if}--> ，字符集：{$_G['config']['db'][1]['dbcharset']}</span>
+					</div>
+					<div class="col-md-12">
+						<strong>服务器持续运行时间: </strong><span><!--{eval echo getUptime()}--></span>
+					</div>
+					<div class="col-lg-3 col-md-4 col-sm-6">
+						<strong>服务器软件: </strong><span>{$_SERVER['SERVER_SOFTWARE']}</span>
+					</div>
+					<div class="col-lg-3 col-md-4 col-sm-6">
+						<strong>GD 库: </strong><span>$gd_version</span>
+					</div>
+					<div class="col-lg-3 col-md-4 col-sm-6">
+						<strong>域名: </strong>{$_SERVER['HTTP_HOST']}<span></span>
+					</div>
+					<div class="col-lg-3 col-md-4 col-sm-6">
+						<strong>服务器端口: </strong><span>{$_SERVER['SERVER_PORT']}</span>
+					</div>
+					<div class="col-lg-3 col-md-4 col-sm-6">
+						<strong>通信协议: </strong><span>{$_SERVER['SERVER_PROTOCOL']}</span>
+					</div>
+					<div class="col-lg-3 col-md-4 col-sm-6">
+						<strong>curl版本: </strong><span><!--{eval echo curl_version()['version'];}--></span>
+					</div>
+					<div class="col-lg-3 col-md-4 col-sm-6">
+						<strong>网站路径: </strong><span>{$_SERVER["DOCUMENT_ROOT"]}</span>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="accordion-item">
+		<h2 class="accordion-header" id="panelsStayOpen-strextra">
+			<button class="accordion-button" type="button" data-toggle="collapse" data-target="#panelsStayOpen-collapseTwo" aria-expanded="true" aria-controls="panelsStayOpen-collapseTwo">PHP信息</button>
+		</h2>
+		<div id="panelsStayOpen-collapseTwo" class="accordion-collapse collapse show" aria-labelledby="panelsStayOpen-strextra">
+			<div class="accordion-body">
+				<div class="row">
+					<div class="col-lg-3 col-md-4 col-sm-6">
+						<strong>PHP详情: </strong><span><a href="{MOD_URL}&do=phpinfo" target="_blank">点击查看</a></span>
+					</div>
+					<div class="col-lg-3 col-md-4 col-sm-6">
+						<strong>PHP版本: </strong><span>{PHP_VERSION}</span>
+					</div>
+					<div class="col-lg-3 col-md-4 col-sm-6">
+						<strong>PHP 平台版本: </strong><span>$php_os_version</span>
+					</div>
+					<div class="col-lg-3 col-md-4 col-sm-6">
+						<strong>内存限制: </strong><span>$memory_limit</span>
+					</div>
+					<div class="col-lg-3 col-md-4 col-sm-6">
+						<strong>POST提交限制: </strong><span>$post_max_size</span>
+					</div>
+					<div class="col-lg-3 col-md-4 col-sm-6">
+						<strong>上传文件限制: </strong><span>$max_upload_size</span>
+					</div>
+					<div class="col-lg-3 col-md-4 col-sm-6">
+						<strong>最大执行时间: </strong><span>$max_execution_time</span>
+					</div>
+					<div class="col-lg-3 col-md-4 col-sm-6">
+						<strong>最大请求时间: </strong><span>$max_input_time</span>
+					</div>
+					<div class="col-lg-3 col-md-4 col-sm-6">
+						<strong>PHP部署方式: </strong><span><!--{eval echo php_sapi_name();}--></span>
+					</div>
+					<div class="col-lg-3 col-md-4 col-sm-6">
+						<strong>PHP报错: </strong><span><!--{if ini_get('display_errors')}-->已开启<!--{else}-->已关闭<!--{/if}--></span>
+					</div>
+					<div class="col-lg-3 col-md-4 col-sm-6">
+						<strong>PHP脚本所有者: </strong><span><!--{eval echo get_current_user();}--></span>
+					</div>
+					<div class="col-sm-6">
+						<strong>php安装目录: </strong><span>{PHP_BINDIR}</span>
+					</div>
+					<div class="col-sm-6">
+						<strong>php安装目录: </strong><span><!--{eval echo php_ini_loaded_file();}--></span>
+					</div>
+				</div>
+				禁用的函数：$disable_func_str
+				<hr>
+				函数依赖性检查: 
+				<div class="row">$func_strextra</div>
+				<hr>
+				已加载的扩展：$extensions
+			</div>
+		</div>
+	</div>
+	<div class="accordion-item">
+		<h2 class="accordion-header" id="panelsStayOpen-headingThree">
+			<button class="accordion-button" type="button" data-toggle="collapse" data-target="#panelsStayOpen-collapseThree" aria-expanded="false" aria-controls="panelsStayOpen-collapseThree">其他信息</button>
+		</h2>
+		<div id="panelsStayOpen-collapseThree" class="accordion-collapse collapse show" aria-labelledby="panelsStayOpen-headingThree">
+			<div class="accordion-body">
+				<div class="alert alert-info" role="alert">
+					<strong>1. PHP 层面超时（脚本自身管控）</strong><br>
+					- PHP 最大请求时间（max_input_time）：处理大文件上传、大量表单数据时需关注（管控数据接收阶段）<br>
+					- PHP 最大执行时间（max_execution_time）：处理复杂计算、数据库操作等耗时任务时需关注（管控代码执行阶段）<br>
+					<br>
+					<strong>2. Nginx 层面超时（请求全链路管控）</strong><br>
+					- client_body_timeout：需 ≥ max_input_time（避免接收大文件时 Nginx 先断开）<br>
+					- fastcgi_read_timeout：需 ≥ max_execution_time（避免长耗时任务时 Nginx 先超时）<br>
+					<small>提示：仅配置 PHP 可能出现 408/504 错误，需确保 Nginx 与 PHP 超时时间匹配</small><br>
+					详细的DzzOffice 优化教程请前往DzzOffice 官网获取更多优化建议。
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

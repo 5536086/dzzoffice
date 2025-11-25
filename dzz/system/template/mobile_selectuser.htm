@@ -18,7 +18,6 @@
 </head>
 <body>
 <!--搜索开始-->
-
 <header class="weui-search-bar">
     <div class="weui-search-bar__form" action="" onsubmit="return ">
         <div class="weui-search-bar__box">
@@ -53,7 +52,7 @@
             <ul class="weui-member-select-scroller" id="seluser">
                 <!--{loop $selects $key $value}-->
                 <li id="seluser_sl_$key" class="right-classa-depart avatar avatar-xs" data-val="$key"> {eval echo
-                    avatar_block($value[uid]);}<i class="ti-close dzz dzz-close ti-opacity"></i></li>
+                    avatar_block($value['uid']);}<i class="ti-close dzz dzz-close ti-opacity"></i></li>
                 <!--{/loop}-->
             </ul>
         </div>
@@ -202,7 +201,9 @@
                     $.toast(data['error']);
                 }
                 return false;
-            },'json')
+            },'json').fail(function (jqXHR, textStatus, errorThrown) {
+                showmessage('{lang do_failed}', 'error', 3000, 1);
+            });
         }
         return false;
     }

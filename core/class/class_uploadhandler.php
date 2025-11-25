@@ -287,11 +287,7 @@ class UploadHandler
 
     protected function get_file_size($file_path, $clear_stat_cache = false) {
         if ($clear_stat_cache) {
-            if (version_compare(PHP_VERSION, '5.3.0') >= 0) {
-                clearstatcache(true, $file_path);
-            } else {
-                clearstatcache();
-            }
+            clearstatcache(true, $file_path);
         }
         return $this->fix_integer_overflow(filesize($file_path));
     }
@@ -1117,21 +1113,21 @@ class UploadHandler
 
 	public function getPath($filename,$dir='dzz'){
 		global $_G;
-			$pathinfo = pathinfo($filename);
-			$ext = $pathinfo['extension']?($pathinfo['extension']):'';
-			if($ext && in_array(strtolower($ext) ,getglobal('setting/unRunExts'))){
-				$ext='dzz';
-			}
-		    $subdir = $subdir1 = $subdir2 = '';
-			$subdir1 = date('Ym');
-			$subdir2 = date('d');
-			$subdir = $subdir1.'/'.$subdir2.'/';
-			$target1=$dir.'/'.$subdir.'index.html';
-			$target=$dir.'/'.$subdir;
-			$target_attach=$_G['setting']['attachdir'].$target1;
-			$targetpath = dirname($target_attach);
-			dmkdir($targetpath);
-			return $target.date('His').''.strtolower(random(16)).'.'.$ext;
+        $pathinfo = pathinfo($filename);
+        $ext = $pathinfo['extension']?($pathinfo['extension']):'';
+        if($ext && in_array(strtolower($ext), $_G['setting']['unRunExts'])){
+            $ext='dzz';
+        }
+        $subdir = $subdir1 = $subdir2 = '';
+        $subdir1 = date('Ym');
+        $subdir2 = date('d');
+        $subdir = $subdir1.'/'.$subdir2.'/';
+        $target1=$dir.'/'.$subdir.'index.html';
+        $target=$dir.'/'.$subdir;
+        $target_attach=$_G['setting']['attachdir'].$target1;
+        $targetpath = dirname($target_attach);
+        dmkdir($targetpath);
+        return $target.date('His').''.strtolower(random(16)).'.'.$ext;
 	 }
 	public function save($file_path,$filename) {
 	 global $_G;
@@ -1281,6 +1277,8 @@ class UploadHandler
                 return 'image/jpeg';
             case 'png':
                 return 'image/png';
+            case 'webp':
+                return 'image/webp';
             case 'gif':
                 return 'image/gif';
             default:

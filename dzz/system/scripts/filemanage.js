@@ -75,6 +75,7 @@ _filemanage.apicacheTimer = {};
 _filemanage.infoPanelUrl = '';
 _filemanage.viewstyle = ['bigicon', 'middleicon', 'middlelist', 'smalllist', 'detaillist'];
 _filemanage.getData = function (url, callback) {
+	jQuery('.loadingmiddlecon').html(_explorer.loadhtml);
 	jQuery.getJSON(url, function (json) {
 		if (json.error) {
 			alert(json.error);
@@ -249,7 +250,7 @@ _filemanage.setInfoPanel = function () {
 		if (!fid) {
 			var data = '<div class="nothing_message">'
 			+'<div class="nothing_allimg">'
-			+'<img src="dzz/explorer/img/noFilePage-FileChoice.png">'
+			+'<img src="dzz/explorer/images/noFilePage-FileChoice.png">'
 			+'<p>'+__lang.choose_file_examine_information+'</p>'
 			+'</div>'
 			+'</div>';
@@ -300,31 +301,17 @@ _filemanage.prototype.CreateIcos = function (data, flag) {
 	var template = _filemanage.get_template(this.id);
 	//创建图标列表
 	if (data.flag) {
-		if (!data.img) {
-			data.img = 'dzz/styles/thame/' + _explorer.thame.system.folder + '/system/' + data.flag + '.png';
-		}
-		data.error = 'dzz/images/default/system/' + data.flag + '.png';
-	} else if (data.type === 'folder') {
-		if (data.gid > 0) {
-			data.icon = data.img ? data.img : data.icon;
-			data.error = data.icon || 'dzz/images/default/system/folder-read.png';
-			data.img = data.icon ? data.icon.replace('dzz/images/default', 'dzz/styles/thame/' + _explorer.thame.system.folder) : 'dzz/styles/thame/' + _explorer.thame.system.folder + '/system/folder-read.png';
-		} else {
-			data.icon = data.img ? data.img : data.icon;
-			data.error = data.icon || 'dzz/images/default/system/folder.png';
-			data.img = data.icon ? ((data.icon).replace('dzz/images/default', 'dzz/styles/thame/' + _explorer.thame.system.folder)) : 'dzz/styles/thame/' + _explorer.thame.system.folder + '/system/folder.png';
-		}
-	} else if (data.type === 'shortcut' && data.ttype === 'folder') {
-		if (data.tdata.gid > 0) {
-			data.error = data.tdata.img || 'dzz/images/default/system/folder-read.png';
-			data.img = (data.tdata.img + '').replace('dzz/images/default', 'dzz/styles/thame/' + _explorer.thame.system.folder);
-		} else {
-			data.error = data.tdata.img || 'dzz/images/default/system/folder.png';
-			data.img = data.tdata.img ? ((data.tdata.img + '').replace('dzz/images/default', 'dzz/styles/thame/' + _explorer.thame.system.folder)) : 'dzz/styles/thame/' + _explorer.thame.system.folder + '/system/folder.png';
-		}
-	} else {
-		data.error = 'dzz/images/default/icodefault.png';
-	}
+        if (!data.img) {
+            data.img = 'dzz/images/default/system/' + data.flag + '.png';
+        }
+        data.error = 'dzz/images/default/system/' + data.flag + '.png';
+    } else if (data.type === 'folder') {
+        data.icon = data.img ? data.img : data.icon;
+        data.error = data.icon || 'dzz/images/default/system/folder.png';
+        data.img = data.icon ? data.icon : 'dzz/images/default/system/folder.png';
+    } else {
+        data.error = 'dzz/images/default/icodefault.png';
+    }
 	var html = template.replace(/\{name\}/g, data.name);
 	html = html.replace(/\{rid\}/g, data.rid);
 	html = html.replace(/tsrc=\"\{img\}\"/g, 'src="{img}"');
@@ -795,8 +782,6 @@ _filemanage.prototype.tddraging = function () {
 _filemanage.prototype.tddraged = function (e) {
 	this.DetachEvent(e);
 	jQuery('#_blank').hide();
-	//document.getElementById('_blank').style.cursor="url('dzz/images/cur/aero_arrow.cur'),auto";
-	//document.body.style.cursor="url('dzz/images/cur/aero_arrow.cur'),auto";
 	var xx = e.clientX - this.XX;
 	//计算新的各个td的百分比
 	var right_width = _window.windows[this.winid].bodyWidth - jQuery('#jstree_area').width();
@@ -857,11 +842,8 @@ _filemanage.prototype.tddraged = function (e) {
 		this.detailper[i] = Math.floor((all_width[i] / right_width) * 100);
 	}
 	this.showIcos(this.winid);
-	//alert(document.getElementById('tabs_cover').offsetLeft+'========='+document.getElementById('tabs_cover').offsetWidth);
 };
 _filemanage.prototype.DetachEvent = function () {
-
-	//document.body.style.cursor="url('dzz/images/cur/aero_arrow.cur'),auto";
 	document.onmousemove = _filemanage.onmousemove;
 	document.onmouseup = _filemanage.onmouseup;
 	document.onselectstart = _filemanage.onselectstart;
@@ -1018,14 +1000,8 @@ _filemanage.property = function (rid, isfolder) {
 		}
 		path = encodeURIComponent(dpaths.join(','));
 	}
-	showWindow('property', _explorer.appUrl + '&op=ajax&operation=property&paths=' + path);
+	showWindow('property', _explorer.appUrl + '&op=ajax&operation=property&paths=' + path,'get',0);
 };
-
-
-
-
-
-
 
 _filemanage.NewIco = function (type, fid) {
 	if (!fid && !_filemanage.fid) {
@@ -1036,9 +1012,9 @@ _filemanage.NewIco = function (type, fid) {
 	}
 
 	if (type === 'newFolder') {
-		showWindow('newFolder', _explorer.appUrl + '&op=ajax&operation=' + type + '&fid=' + fid);
+		showWindow('newFolder', _explorer.appUrl + '&op=ajax&operation=' + type + '&fid=' + fid,'get',0);
 	} else if (type === 'newLink') {
-		showWindow('newLink', _explorer.appUrl + '&op=ajax&operation=' + type + '&fid=' + fid);
+		showWindow('newLink', _explorer.appUrl + '&op=ajax&operation=' + type + '&fid=' + fid,'get',0);
 	} else {
 		$.post(_explorer.appUrl + '&op=ajax&operation=newIco&type=' + type, {
 			'fid': fid
@@ -1047,10 +1023,13 @@ _filemanage.NewIco = function (type, fid) {
 				_explorer.sourcedata.icos[data.rid] = data;
 				_filemanage.cons['f-' + fid].CreateIcos(data);
 				_filemanage.rename(data.rid);
+				showmessage('已创建：'+data.name, 'success', 3000, 1);
 			} else {
 				showDialog(data.error);
 			}
-		}, 'json');
+		}, 'json').fail(function (jqXHR, textStatus, errorThrown) {
+            showmessage(__lang.do_failed, 'error', 3000, 1);
+        });
 	}
 };
 _filemanage.rename = function (id) {
@@ -1173,8 +1152,8 @@ _filemanage.delIco = function (rid, noconfirm) {
 	}
 	var icosdata = _explorer.sourcedata.icos[rid];
 	if (!noconfirm) {
-		//var finallydelete = (_explorer.deletefinally == 1) ? true:false;
-        var finallydelete = false;
+		var finallydelete = (_explorer.deletefinally == 1) ? true:false;
+        //var finallydelete = false;
 		if (_filemanage.selectall.icos.length > 0 && jQuery.inArray(rid, _filemanage.selectall.icos) > -1) {
 			if (_explorer.sourcedata.icos[_filemanage.selectall.icos[0]].isdelete > 0 || (_explorer.sourcedata.icos[_filemanage.selectall.icos[0]].bz && _explorer.sourcedata.icos[_filemanage.selectall.icos[0]].bz)) {
 				Confirm((finallydelete) ?__lang.js_finallydelete_selectall:__lang.js_delete_selectall, function () {
@@ -1262,5 +1241,7 @@ _filemanage.delIco = function (rid, noconfirm) {
 		}
         _filemanage.removeridmore(rids);
 
-	}, 'json');
+	}, 'json').fail(function (jqXHR, textStatus, errorThrown) {
+		showmessage(__lang.do_failed, 'error', 3000, 1);
+	});
 };

@@ -1,110 +1,220 @@
-<!--{template common/header_simple_start}-->
-<link href="static/css/common.css?{VERHASH}" rel="stylesheet" media="all">
-<link href="static/select2/select2.css?{VERHASH}" rel="stylesheet" media="all">
-<link href="static/select2/select2-bootstrap.css?{VERHASH}" rel="stylesheet" media="all">
-<script type="text/javascript" src="static/js/jquery.leftDrager.js?{VERHASH}"></script>
-<style>
-	input[type="text"] {
-		margin: 0;
-	}
-</style>
-<!--{template common/header_simple_end}-->
-<!--{template common/commer_header}-->
-<div class="bs-container clearfix">
-	<div class="bs-left-container  clearfix">
-		<!--{template left}--> 
-	</div>
-	<div class="left-drager">
-		
-	</div>
+<!--{template lyear:header_simple_start}-->
+<link rel="stylesheet" href="static/lyear/js/layui/css/layui.css?{VERHASH}">
+<!--{template lyear:header_simple_end}-->
+<main class="bs-main-container">
+    <div class="container-fluid">
+        <div class="card">
+            <div class="card-body">
+                <ul class="nav nav-pills">
+                    <!--{loop $systemlog_setting $mark $info}-->
+                    <!--{if $info[is_open]==1}-->
+                    <li class="nav-item">
+                        <a href="javascript:;" class="nav-link type-btn <!--{if $operation==$mark}-->active<!--{/if}-->" data-operation="$mark">{$info['title']}</a>
+                    </li>
+                    <!--{/if}-->
+                    <!--{/loop}-->
+                </ul>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-body">
+                <div class="card-search mb-2-5">
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <input type="text" class="form-control pull-left" name="keyword" id="keyword" placeholder="{lang keywords}" value="$_GET['keyword']">
+                        </div>
+                        <div class="col-md-4">
+                            <button type="submit" class="btn btn-primary me-1" id="search-btn">{lang search}</button>
+                            <button type="reset" class="btn btn-default" id="refreshsearch">{lang reset}</button>
+                        </div>
+                    </div>
+                </div>
+                <table class="layui-hide" id="table" lay-filter="table"></table>
+                <script type="text/html" id="toolbar">
+                    <div class="layui-btn-container">
+                        <button type="button" id="getCheckDataBtn" class="layui-btn layui-btn-normal layui-btn-sm layui-btn-disabled" lay-event="getCheckData" disabled>{lang get_selected_row_data}</button>
+                        <button type="button" class="layui-btn layui-btn-normal layui-btn-sm" lay-event="get">{lang refresh}</button>
+                    </div>
+                </script>
+                <script type="text/html" id="barDemo">
+                    <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="detail">{lang examine_details}</a>
+                </script>
+            </div>
+        </div>
+    </div>
+</main>
+<script src="static/lyear/js/layui/layui.js?{VERHASH}"></script>
+<script>
+    var operation = '{$_GET['operation']}';
+    var keyword = $('#keyword').val();
+    layui.use('table', function () {
+        var table = layui.table;
+        table.render({
+            elem: '#table',
+            url: '{MOD_URL}&do=getinfo&ajaxdata=json',
+            toolbar: '#toolbar',
+            where: {operation: operation,keyword: keyword},
+            title: '系统日志数据表格',
+            even:true,
+            cellMinWidth:120,
+            text: {
+                none: '暂无相关日志'
+            },
+            page: {
+                limit: 20,
+                limits: [10, 20, 50, 100, 200, 500, 1000, 2000, 5000]
+            },
+            cols: [[
+                {type: 'checkbox', fixed: 'left'}
+                , {title: 'ID', width: 80, fixed: 'left', type: 'numbers'}
+                , {field: 'operator', title: '{lang operator}', align: 'center', sort: true}
+                , {field: 'usergroup', title: '{lang usergroup}', align: 'center', sort: true}
+                , {field: 'ip', title: 'IP', align: 'center', sort: true}
+                , {field: 'time', title: '{lang time}', align: 'center', sort: true}
+                , {field: 'loginfo', title: '{lang info}', align: 'left', sort: true,templet: function(d) {return d.loginfo;}}
+                , {field: 'visit', title: '{lang visit}', align: 'left', hide: true, sort: true,templet: function(d) {return d.visit;}}
+                , {field: 'from', title: '{lang from}', align: 'right', hide: true, sort: true,templet: function(d) {return d.from;}}
+                , {field: 'info', title: '{lang Equipment information}', align: 'right', hide: true, sort: true}
+                , {title: '{lang operation}', width: 100, align: 'center', toolbar: '#barDemo'}
+            ]],
+            done: function(res, curr, count) {
+                checkStatusBtn();
+            }
+        });
+        table.on('checkbox(table)', function(obj){
+            checkStatusBtn();
+        });
+        //头工具栏事件
+        table.on('toolbar(table)', function (obj) {
+            var checkStatus = table.checkStatus(obj.config.id);
+            var data = checkStatus.dataCache;
+            switch (obj.event) {
+                case 'getCheckData':
+                    if (data.length === 0) {
+                        showmessage("{lang please_select_at_least_one_row}", 'danger', 3000, 1);
+                        return;
+                    }
+                    var template = '<div class="accordion">';
+                    data.forEach(function (item) {
+                        template += '<div class="accordion-item">';
+                        template += '<h2 class="accordion-header" id="Open-heading' + item.LAY_NUM + '">';
+                        template += '<button class="accordion-button" type="button" data-toggle="collapse" data-target="#Open-collapse' + item.LAY_NUM + '" aria-expanded="true" aria-controls="Open-collapse' + item.LAY_NUM + '">';
+                        template += 'ID：' + item.LAY_NUM;
+                        template += '</button>';
+                        template += '</h2>';
+                        template += '<div id="Open-collapse' + item.LAY_NUM + '" class="accordion-collapse collapse show" aria-labelledby="Open-heading' + item.LAY_NUM + '">';
+                        template += '<div class="accordion-body">';
+                        template += '<p><strong>{lang operator}:</strong> ' + item.operator + '</p>';
+                        template += '<p><strong>{lang usergroup}:</strong> ' + item.usergroup + '</p>';
+                        template += '<p><strong>IP:</strong> ' + item.ip + '</p>';
+                        template += '<p><strong>{lang time}:</strong> ' + item.time + '</p>';
+                        template += '<p><strong>{lang info}:</strong> ' + item.loginfo + '</p>';
+                        template += '<p><strong>{lang visit}:</strong>' + item.visit + '</p>';
+                        template += '<p><strong>{lang from}:</strong><a href="' + item.from + '" target="_blank">' + item.from + '</a></p>';
+                        template += '<p><strong>{lang Equipment information}:</strong> ' + item.info + '</p>';
+                        template += '</div>';
+                        template += '</div>';
+                        template += '</div>';
+                    });
+                    template += '</div>';
+                    layer.alert(template, {
+                        title: '选中的日志信息'
+                    });
+                    break;
+                case 'get':
+                    table.reloadData('table', {
+                        where: {operation: operation,keyword:$('#keyword').val()}, // 清空搜索参数
+                        page: {
+                            curr: 1 //重新从第 1 页开始
+                        }
+                    });
+                    break;
+            }
+            ;
+        });
+        //监听工具条
+        table.on('tool(table)', function (obj) {
+            if (obj.event === 'detail') {
+                showDataTemplate(obj);
+            }
+        });
+        //触发排序事件
+        table.on('sort(table)', function (obj) {
+            layer.msg('排序结果为前端根据当前页数据进行排序', {offset:'10px'});
+        });
+        table.on('rowDouble(table)', function (obj) {
+            showDataTemplate(obj);
+        });
 
-	<div class="bs-main-container  clearfix">
+        function showDataTemplate(obj) {
+            var data = obj.dataCache;
+            var template = '<div>' +
+                '<p><strong>{lang operator}:</strong> ' + data.operator + '</p>' +
+                '<p><strong>{lang usergroup}:</strong> ' + data.usergroup + '</p>' +
+                '<p><strong>IP:</strong> ' + data.ip + '</p>' +
+                '<p><strong>{lang time}:</strong> ' + data.time + '</p>' +
+                '<p><strong>{lang info}:</strong> ' + data.loginfo + '</p>' +
+                '<p><strong>{lang visit}:</strong> ' + data.visit + '</p>' +
+                '<p><strong>{lang from}:</strong> <a href="' + data.from + '" target="_blank">' + data.from + '</a></p>' +
+                '<p><strong>{lang Equipment information}:</strong> ' + data.info + '</p>' +
+                '</div>';
 
-		<div class="main-header clearfix" style="border-bottom:1px solid #e1e1e1">
-			
-			<ul class="nav nav-pills  nav-pills-bottomguide">
-				 
-				<!--{loop $systemlog_setting $mark $info}-->
-					<!--{if $info[is_open]==1 }-->
-					<li <!--{if $operation==$mark }-->class="active"<!--{/if}-->>
-						<a hidefocus="true" href="{BASESCRIPT}?mod=systemlog&type=list&operation=$mark">{$info['title']}</a>
-					</li>
-					<!--{/if}-->
-				<!--{/loop}-->  
-			</ul>
-		</div>
-		  
-		<div class="main-content" style="border-top:1px solid #FFF"> 
-			 
-			<form id="cpform" action="{BASESCRIPT}?mod=systemlog&type=list&operation=$operation" class="form-horizontal form-horizontal-left" method="post" name="cpform">
-				<input type="hidden" value="{FORMHASH}" name="formhash">
-				<input type="hidden" name="lpp" value="20">
-				<table class="table">
-					<thead>
-						<th width="80">{lang operator}</th>
-						<th width="80">{lang usergroup}</th>
-						<th width="120">{lang ip}</th>
-						<th width="120">{lang time}</th>
-						<th>{lang info}</th>
-					</thead>
-					<!--{if $list}-->
-						<!--{loop $list $key $log}-->
-						<tr>
-							<td>$log[2]</td>
-							<td>$log[3]</td>
-							<td>$log[4]</td>
-							<td>$log[1]</td>
-							<td>
-								<a href="javascript:;" onclick="togglecplog('{$key}')">{eval echo cutstr($log[5], 200)}</a>
-							</td>
-						</tr>
-						<thead id="cplog_{$key}" style="display:none">
-							<td colspan="10">
-								{lang loginfo}: $log[5]
-								<br/>{lang visit}: $log[6]
-								<br/>{lang from}: $log[7]</td>
-						</thead>
-						<!--{/loop}-->
-						<tr>
-							<td colspan="15">
-								<div class="pull-left input-group" style="width:100px;">
-									<span class="input-group-addon">{lang logs_lpp}</span>
-									<select class="input-sm form-control" style="margin:0;width:60px;" onchange="if(this.options[this.selectedIndex].value != '') {this.form.lpp.value = this.options[this.selectedIndex].value;this.form.submit(); }">
-										<option value="20" $checklpp[20]> 20 </option>
-										<option value="40" $checklpp[40]> 40 </option>
-										<option value="80" $checklpp[80]> 80 </option>
-									</select>
-								</div>
-								<div class="pull-left input-group" style="width:128px;">
-									<input type="text" class="input-sm form-control" style="width:90px;border-left:0" name="keyword" value="$_GET[keyword]">
-									<a href="javascript:;" class="input-group-addon" onclick="document.getElementById('cpform').submit();return false"><i class="glyphicon glyphicon-search"></i></a>
-								</div>
-								$multipage
-							</td>
-						</tr>
-					<!--{else}-->
-						<tr>
-							<td colspan="5">{lang there_no_such_results}</td>
-						</tr>
-					<!--{/if}--> 
-				</table>
-			</form>
+            layer.alert(template, {
+                title: 'ID <strong>' + data.LAY_NUM + '</strong> {lang detail}：'
+            });
 
-			<script type="text/javascript">
-				function togglecplog(k) {
-					var cplogobj = document.getElementById('cplog_' + k);
-					if(cplogobj.style.display == 'none') {
-						cplogobj.style.display = '';
-					} else {
-						cplogobj.style.display = 'none';
-					}
-				}
-			</script> 
-		</div>
-	</div>
-</div>
-<script type="text/javascript">
-	jQuery('.left-drager').leftDrager_layout();
+            // 标注选中样式
+            obj.tr.addClass('layui-table-click').siblings().removeClass('layui-table-click');
+        }
+
+        // 搜索按钮功能
+        $(document).on('click', '#search-btn', function () {
+            keyword = $('#keyword').val();
+            table.reloadData('table', {
+                where: {operation: operation,keyword: keyword},
+                page: {
+                    curr: 1 //重新从第 1 页开始
+                }
+            });
+        });
+        // 重置按钮功能
+        $('#refreshsearch').click(function () {
+            $('#keyword').val('');
+            table.reloadData('table', {
+                where: {operation: operation}, // 清空搜索参数
+                page: {
+                    curr: 1 //重新从第 1 页开始
+                }
+            });
+        });
+        // 类型按钮功能
+        $(document).on('click', '.type-btn', function () {
+            // 移除所有 .type-btn 的 active 类
+            $('.type-btn').removeClass('active');
+            // 为当前点击的按钮添加 active 类
+            $(this).addClass('active');
+            // 获取当前的 type 值
+            operation = $(this).data('operation');
+            $('#keyword').val('');
+            table.reloadData('table', {
+                where: {operation: operation},
+                page: {
+                    curr: 1 //重新从第 1 页开始
+                }
+            });
+        });
+        function checkStatusBtn() {
+            var checkStatus = table.checkStatus('table');
+            var checkedCount = checkStatus.data.length;
+            var getCheckDataBtn = document.getElementById('getCheckDataBtn');
+            if(checkedCount > 0) {
+                getCheckDataBtn.removeAttribute('disabled');
+                getCheckDataBtn.classList.remove('layui-btn-disabled');
+            } else {
+                getCheckDataBtn.setAttribute('disabled', 'disabled');
+                getCheckDataBtn.classList.add('layui-btn-disabled');
+            }
+        }
+    });
 </script>
-<script src="static/bootstrap/js/bootstrap.min.js?{VERHASH}"></script>
-<!--{template common/footer_simple}-->
+<!--{template lyear:footer_simple}-->

@@ -4,13 +4,10 @@ if (!defined('IN_DZZ')) {
 }
 
 //这里定义一个类brower来判断浏览器种类和操作系统平台
-class helper_browser
-{
+class helper_browser {
     //判断返回的字符串提取对应的字符做出判断
     //A function to determine what browser and version we are using.
-
-    static function getBrowser($useragent = null)
-    {
+    static function getBrowser($useragent = null) {
         // check for most popular browsers first
         // unfortunately, that's IE. We also ignore Opera and Netscape 8
         // because they sometimes send msie agent
@@ -98,8 +95,7 @@ class helper_browser
     }
 
     //判断是否为企业微信
-    static function is_wxwork()
-    {
+    static function is_wxwork() {
         if (strpos($_SERVER['HTTP_USER_AGENT'], 'wxwork') !== false) {
             return true;
         } else {
@@ -107,22 +103,22 @@ class helper_browser
         }
     }
 
-    static function ismobile()
-    {
+    static function ismobile() {
+        global $_G;
+        if ($_G['ismobile']) return $_G['ismobile'];
         $agent = strtolower($_SERVER['HTTP_USER_AGENT']);
         if (preg_match("/WindowsWechat/i", $agent)) {
             return false;//return 'WindowsWechat';pc微信客户端打开pc版
-        }
-        elseif (preg_match("/macintosh/i", $agent) && preg_match("/MicroMessenger/i", $agent)) {
-             return false;//苹果电脑系统pc端
-        }
-        elseif (preg_match("/MicroMessenger/i", $agent)) {
+        } elseif (preg_match("/macintosh/i", $agent) && preg_match("/MicroMessenger/i", $agent)) {
+            return false;//苹果电脑系统pc端
+        } elseif (preg_match("/MicroMessenger/i", $agent)) {
             return 'wechat';
-        }
-        elseif (preg_match("/iphone/i", $agent) && preg_match("/mac os/i", $agent)) {
+        } elseif (preg_match("/iphone/i", $agent) && preg_match("/mac os/i", $agent)) {
             return 'iPhone';
         } elseif (preg_match("/ipod/i", $agent) && preg_match("/mac os/i", $agent)) {
             return 'iPod';
+        } elseif (preg_match("/ipad/i", $agent) && preg_match("/mac os/i", $agent)) {
+            return 'iPad';
         } elseif (preg_match("/linux/i", $agent) && preg_match("/Android/i", $agent)) {
             return 'Android';
         }
@@ -131,49 +127,33 @@ class helper_browser
 
     //A function to determine the platform we are on.
     //判断平台的种类
-
-    static function getplatform()
-    {
+    static function getplatform() {
+        global $_G;
+        if ($_G['platform']) return $_G['platform'];
         $agent = strtolower($_SERVER['HTTP_USER_AGENT']);
-        $os = array();;
-
-        if (preg_match("/win/i", $agent) && preg_match('/nt 5.1/', $agent)) {
-            $os = array('Windows' => 'XP');
-        } elseif (preg_match('win', $agent) && preg_match('/nt 5.0/', $agent)) {
-            $os = array('Windows' => '2000');
-        } elseif (preg_match('win', $agent) && preg_match("/nt 5.2/i", $agent)) {
-            $os = array('Windows' => '2003');
-        } elseif (preg_match("/win/i", $agent) && preg_match("/nt 6.0/i", $agent)) {
-            $os = array('Windows' => '2008');
-        } elseif (preg_match("/win/i", $agent) && preg_match("/6.0/i", $agent)) {
-            $os = array('Windows' => 'vasta');
-        } elseif (preg_match("/win/i", $agent) && preg_match("/6.1/i", $agent)) {
-            $os = array('Windows' => '7');
-        } elseif (preg_match("/win/i", $agent) && preg_match("/6.2/i", $agent)) {
-            $os = array('Windows' => '8');
-        } elseif (preg_match("/win/i", $agent) && preg_match("/nt 6.3/i", $agent)) {
-            $os = array('Windows' => '8.1');
-        } elseif (preg_match("/win/i", $agent) && preg_match("/nt/i", $agent)) {
-            $os = array('Windows' => 'nt');
-        } elseif (preg_match("/ipad/i", $agent) && preg_match('/mac os/i', $agent)) {
-            $os = array('iPad' => true);
-        } elseif (preg_match("/iphone/i", $agent) && preg_match('/mac os/i', $agent)) {
-            $os = array('iPhone' => true);
-        } elseif (preg_match("/ipod/i", $agent) && preg_match('/mac os/i', $agent)) {
-            $os = array('iPod' => true);
-        } elseif (preg_match("/linux/i", $agent) && preg_match('/Android/i', $agent)) {
-            $os = array('Android' => true);
-        } elseif (preg_match("/linux/i", $agent)) {
-            $os = array('Linux' => true);
-        } elseif (preg_match("/unix/i", $agent)) {
-            $os = array('Unix' => true);
-        } elseif (preg_match("/Mac/i", $agent) && preg_match("/Macintosh/i", $agent)) {
-            $os = array('Macintosh' => true);
+        if (strpos($agent, 'win') !== false) {
+            if (strpos($agent, 'nt 6.3') !== false) return ['Windows' => '8.1'];
+            if (strpos($agent, 'nt 6.2') !== false) return ['Windows' => '8'];
+            if (strpos($agent, 'nt 6.1') !== false) return ['Windows' => '7'];
+            if (strpos($agent, 'nt 6.0') !== false) return ['Windows' => '2008'];
+            if (strpos($agent, 'nt 5.2') !== false) return ['Windows' => '2003'];
+            if (strpos($agent, 'nt 5.1') !== false) return ['Windows' => 'XP'];
+            if (strpos($agent, 'nt 5.0') !== false) return ['Windows' => '2000'];
+            if (strpos($agent, 'nt') !== false) return ['Windows' => 'nt'];
         }
 
+        if (strpos($agent, 'mac os') !== false) {
+            if (strpos($agent, 'iphone') !== false) return ['iPhone' => true];
+            if (strpos($agent, 'ipad') !== false) return ['iPad' => true];
+            if (strpos($agent, 'ipod') !== false) return ['iPod' => true];
+            return ['Macintosh' => true]; // 默认 Mac OS X 桌面版
+        }
 
-        return $os;
+        if (strpos($agent, 'android') !== false) return ['Android' => true];
+        if (strpos($agent, 'linux') !== false) return ['Linux' => true];
+        if (strpos($agent, 'unix') !== false) return ['Unix' => true];
+
+        return [];
     }
 }
-
 ?>

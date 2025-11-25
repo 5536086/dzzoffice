@@ -1,33 +1,33 @@
-
 function loginsub(formid,rspaceid){
 
     var url = jQuery('#'+formid).attr('action');
 
     url = (url)? url:'user.php?mod=login&op=logging&action=login&loginsubmit=yes';
 
-
     var formData = jQuery('#'+formid).serialize();
 
     var type = 'json';
 
     jQuery.post(url+'&returnType='+type,formData,function(json){
-
         if(json['success']){
-			location.href=json['success']['url_forward'];
-          /*  jQuery('#succeedmessage_href').href = json['success']['url_forward'];
-            jQuery('#main_message').hide();
-            jQuery('#main_succeed').show();
-            jQuery('#succeedlocation').html(json['success']['message']);
-            jQuery('#succeedmessage_href').attr('href',json['success']['url_forward']);
-            setTimeout("window.location.href ='"+json['success']['url_forward']+"';", 3000);*/
+            showmessage(json['success']['message'],"success",0,1);
+			setTimeout(function() {
+                location.href = json['success']['url_forward'];
+            }, 1000);
         }else if(json['error']){
-
+            showmessage(json['error'],"danger",3000,1);
             jQuery('#'+rspaceid).html(json['error']);
-
+            $('.seccode-refresh-guide').trigger('click');
         }else{
+            showmessage(__lang.system_busy,"danger",3000,1);
             jQuery('#'+rspaceid).html(__lang.system_busy);
+            $('.seccode-refresh-guide').trigger('click');
         }
-    },'json');
+    },'json')
+    .fail(function (jqXHR, textStatus, errorThrown) {
+        showmessage(__lang.system_error, 'error', '3000', 1);
+        jQuery('#'+rspaceid).html(__lang.system_error);
+    });
 }
 function lostpass(contid,formid,rspaceid){
     var url = jQuery('#'+formid).attr('action');
@@ -43,7 +43,6 @@ function lostpass(contid,formid,rspaceid){
 		
         if(json['success']){
           var el=jQuery('#'+contid);
-			console.log(el);
 			var mail='http://mail.'+json['success'].email.split('@')[1];
 			el.find('.Mtitle').html(__lang.password_back_email_sent_successfully);
 			el.find('.Mbody').html(json['success'].msg);
@@ -52,13 +51,14 @@ function lostpass(contid,formid,rspaceid){
 			})
 			el.find('.modal-footer').show();
         }else if(json['error']){
-			
             jQuery('#'+rspaceid).html(json['error']);
 
         }else{
             jQuery('#'+rspaceid).html(__lang.system_busy);
         }
-    },'json');
+    },'json').fail(function (jqXHR, textStatus, errorThrown) {
+		showmessage(__lang.do_failed, 'error', 3000, 1);
+	});
 }
 function setImage(width,height){
 	var clientWidth=document.documentElement.clientWidth;

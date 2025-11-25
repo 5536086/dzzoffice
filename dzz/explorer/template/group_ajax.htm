@@ -1,0 +1,211 @@
+<!--{template common/header_ajax}-->
+<!--{if $operation == 'groupsetting'}-->
+<!--弹出框关于页面-->
+<div class="setup">
+    <div class="table-con">
+        <div class="setup-con content-form">
+	        <div class="modal-header">
+                <h4 class="modal-title text-truncate">{lang about}</h4>
+			    <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
+			</div>	
+            <form class="form-horizontal about-editstaus" onsubmit="return set_submit(this)" id="about-editstaus">
+                <input type="hidden" name="setsubmit" value="true"/>
+                <input type="hidden" name="gid" value="$group['orgid']"/>
+                <div class="modal-body">
+                    <div class="row mb-3">
+                        <label class="col-sm-2" for="groupimgdata">Logo</label>
+                        <div class="col-sm-10">
+                            <input type="hidden" value="$group[aid]" name="arr[aid]" class="imgdata"/>
+                            <div class="group-head">
+                                <a class="head-file" href="javascript:;">
+                                    {eval echo avatar_group($gid);}
+                                    <span class="mdi-hide"><img src="{MOD_PATH}/images/ic-imgMoreAdd1.jpg" style="width: 24px;height: 24px;padding: 0px;"></span>
+                                    <input type="file" onclick="upload_bgphoto(this,true)" name="files[]" id="groupimgdata">
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <label class="col-sm-2" for="grouporgname">{lang name}</label>
+                        <div class="col-sm-10">
+                            <input type="text" class="form-control" name="arr[orgname]" value="$group[orgname]" id="grouporgname">
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <label class="col-sm-2" for="grouporgdesc">{lang introduce}</label>
+                        <div class="col-sm-10">
+                            <input type="text" class="form-control" name="arr[desc]" value="$group[desc]" id="grouporgdesc">
+                        </div>
+                    </div>
+                    <div class="row mb-1">
+                        <label class="col-sm-2">{lang state}</label>
+                        <div class="col-sm-10">
+                            <div class="layui-form">
+                                <input type="checkbox" name="arr[diron]" title="{lang open_start}|{lang close}" lay-skin="switch" <!--{if $group[diron]}-->checked<!--{/if}-->>
+                            </div>
+                        <span class="form-text">{lang close_group_tips}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer clearfix">
+                    <div class="about-button">
+                        <!--{if ($_G['adminid'] == 1) || ($group['type'] == 1 && $perm > 1)}-->
+                        <button type="button" class="btn btn-danger" onclick="delete_group('{$group['orgid']}')"><span class="mdi mdi-delete"></span>{lang delete_group}</button>
+                        <!--{/if}-->
+                        <button type="submit" class="btn btn-primary">{lang save}</button>
+                        <button type="button" class="btn btn-secondary about-cancel" id="about-cancel">{lang cancel}</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script type="text/javascript" reload="1">
+   jQuery(document).ready(function(e) {
+        layuiModules.form.render();
+    });
+    //点击权限效果
+    $(document).off('click.settingclick').on('click.settingclick', '.edit-power li', function () {
+        if ($(this).find('span').hasClass('read-false')) {
+            $(this).find('span').removeClass('read-false');
+        } else {
+            $(this).find('span').addClass('read-false');
+        }
+    })
+
+    $(document).off('click.settingcancel').on('click.settingcancel', '.about-cancel', function () {
+        hideWindow('groupsetting');
+    });
+
+    function set_submit(form) {
+        var array = $(form).serializeArray();
+        var empty = /^\s*$/;
+        for (var o in array) {
+            if (array[o].name == 'arr[orgname]' && empty.test(array[o].value)) {
+                layer.alert(__lang.group_name_must_not_be_empty, {skin:'lyear-skin-danger'});
+            }
+            if (array[o].name == 'arr[perm]' && empty.test(array[o].value)) {
+                layer.alert(__lang.permission_value_cannot_be_empty, {skin:'lyear-skin-danger'});
+            }
+            if (array[o].name == 'arr[aid]' && empty.test(array[o].value) && '$group['type']' == 1) {
+                layer.alert(__lang.please_select_group_head, {skin:'lyear-skin-danger'});
+            }
+
+        }
+        $.post(MOD_URL + '&op=group&do=group_ajax&operation=groupsetting', $(form).serialize(), function (data) {
+            if (data['success']) {
+                hideWindow('groupsetting');
+                layer.alert(__lang.update_data_successful_2seconds_later_the_page_will_be_refreshed_automatically);
+                setTimeout(function () {
+                    var gid = '{$gid}';
+                    location.reload();
+                }, 2000);
+
+            } else if (data['error']) {
+                layer.alert(data['error'], {skin:'lyear-skin-danger'});
+            }
+        }, 'json').fail(function (jqXHR, textStatus, errorThrown) {
+            showmessage('{lang do_failed}', 'error', 3000, 1);
+        });
+
+        return false;
+    }
+    //头像选择
+    $(document).on('mouseenter.head-portrait', '.head-portrait', function () {
+        $(this).addClass('head-hover');
+
+    })
+    $(document).on('mouseleave.head-portrait', '.head-portrait', function () {
+        $(this).removeClass('head-hover');
+
+    })
+    $(document).off('click.clickcheckbox').on('click.clickcheckbox', '.edit-headinput-checkbox', function () {
+        if ($(this).prop("checked")) {
+            var _this = $(this).closest('.head-portrait').siblings('.head-portrait');
+            _this.find('.headinput-checkbox').prop('checked', false);
+            _this.removeClass('head-border');
+            $(this).parents('.head-portrait').addClass('head-border');
+            var aid = $(this).val();
+            $(this).closest('ul').prev('input.imgdata').val(aid);
+        } else {
+            $(this).parents('.head-portrait').removeClass('head-hover');
+            $(this).parents('.head-portrait').removeClass('head-border');
+            $(this).closest('ul').prev('input.imgdata').val('');
+        }
+
+    })
+    function upload_bgphoto(obj, fact) {
+        'use strict';
+        $(obj).fileupload({
+            url: MOD_URL + '&op=ajax&do=upload',
+            dataType: 'json',
+            autoUpload: true,
+            maxFileSize: 2000000,// 2 MB
+            maxChunkSize: 2000000,//2M
+            acceptFileTypes: new RegExp("\.([jpe?g|gif|png])$", 'i'),
+            sequentialUploads: true,
+            add: function (e, data) {
+                data.context = $('<div id="main"></div>');
+                if ($('#main div:first').length > 0) $('#main div:first').before(data.context);
+                else {
+                    $('#main').append(data.context);
+                }
+                data.process().done(function () {
+                    data.submit();
+                });
+            },
+            progress: function (e, data) {
+                var index = 0; //data.index,
+                var node = $(data.context.children()[index]);
+                var progress = parseInt(data.loaded / data.total * 100, 10);
+                node.find('.progress-bar').css(
+                    'width',
+                    progress + '%'
+                );
+            },
+            done: function (e, data) {
+
+                $.each(data.result.files, function (index, file) {
+                    if (file.error) {
+                        data.context.find('.progress').replaceWith('<span class="text-danger">' + file.error + '</span>');
+                    } else {
+                        if (fact) {
+									var html='<a href="javascript:;"><img src="' + file.data.img + '">'+
+                                        '<span  class="mdi-hide"><img src="{MOD_PATH}/images/ic-imgMoreAdd1.jpg" style="width: 24px;height: 24px;padding: 0px;"><span>'+'<input type="file" onclick="upload_bgphoto(this,true)" name="files[]" value="' + file.data.aid + '">'+'</a>'
+                                    $('.head-file').html(html);
+                                    $('input.imgdata').val(file.data.aid);
+                        } else {
+                            data.context.data('aid', file.data.aid).find('img').attr('src', file.data.img).end().find('.progress-container').hide();
+                            var html = '<div class="col-sm-7 setting-img"><img class="img-rounded" src="' + file.data.img + '"><p class="upload-click">' + __lang.click_upload + '</p> <input type="file" id="exampleInputFile" onclick="upload_bgphoto(this)" name="files[]"><input type="hidden" name="arr[groupback]"  value="' + file.data.aid + '" /></div>';
+                            $('.setting-img').replaceWith(html);
+
+                        }
+
+                    }
+                });
+            }
+        })
+    }
+    ;
+    function delete_group(gid){
+        layer.confirm(__lang.delete_group_tips, {title:__lang.delete_group_confirm,skin:'lyear-skin-danger'}, function(index){
+            layer.msg(__lang.deleting_not_please_close, {offset:'10px',time:0});
+            jQuery.post(MOD_URL+'&op=group&do=delete_group',{'gid':gid},function(json){
+                    if(json['success']) {
+                        layer.msg(__lang.delete_group_success, {offset:'10px'});
+                        hideWindow('groupsetting');
+                        location.hash = '#recent';
+                        location.reload();
+                    }else{
+                        layer.alert(json['error'], {skin:'lyear-skin-danger'});
+                    }
+
+            },'json').fail(function (jqXHR, textStatus, errorThrown) {
+                showmessage('{lang do_failed}', 'error', 3000, 1);
+            });
+        });
+    }
+
+</script>
+<!--{/if}-->
+<!--{template common/footer_ajax}-->

@@ -1,0 +1,5 @@
+/*!
+ * 数字滚动增加显示
+ * 主要通过class类内的scroll-numbers获取目标元素数字内容
+ */
+var easing={quadratic:function(n){return Math.sqrt(n)}};function range(n,t,r){for(var e=[],a=n;a<t;a+=r)e.push(a);return e}function interpolation(n,t,r){return range(0,1,1/n).map(t).map(function(n){return r*n})}function animateEl(n,t,r){var e=0,a=n.length,o=setInterval(function(){var t=n[e],i=e===a-1;r(t,e,n),i?clearInterval(o):e++},t/a)}function round(n,t){return Number(Math.round(n+"e"+t)+"e-"+t)}function unformat(n){var t=n.replace(".","").replace(",",".");return parseFloat(t)}function format(n){return n.toString().replace(".",",")}window.addEventListener("DOMContentLoaded",function(){[].slice.call(document.querySelectorAll(".scroll-numbers")).forEach(function(n){var t=n.firstChild.textContent.trim(),r=t.split(",")[1]||"",e=unformat(t);animateEl(interpolation(240,easing.quadratic,e),1e3,function(e,a,o){var i=a===o.length-1,u=round(e,r.length);n.firstChild.textContent=i?t:format(u)})})});

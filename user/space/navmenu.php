@@ -6,9 +6,14 @@
  * @link        http://www.dzzoffice.com
  * @author      zyx(zyx@dzz.cc)
  */
-if(!defined('IN_DZZ')) {
+if (!defined('IN_DZZ')) {
     exit('Access Denied');
 }
-
-include template('navmenu');
+$template = $_GET['template'] ?? '';
+$langList = $_G['config']['output']['language_list'];
+if ($template == '1') {
+    include template('lyear_navmenu', 'lyear');
+} else {
+    include template('navmenu');
+}
 exit();

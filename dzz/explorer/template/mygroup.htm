@@ -1,0 +1,192 @@
+<div class="middletopMenu">
+    <div class="row justify-content-end">
+        <div class="col-sm-4 mb-3">
+            <select name="search" id="mygroupsearch" class="form-select">
+                <option value="all" selected="selected">{lang all}</option>
+                <option value="my">{lang my_create}</option>
+                <option value="manage">{lang my_manage}</option>
+                <option value="partake">{lang my_involved}</option>
+            </select>
+        </div>
+        <div class="col-sm-6 mb-3">
+            <div class="input-daterange input-group" id="datepicker">
+                <label class="input-group-text" for="selectDate">{lang to}</label>
+                <input type="text" class="form-control selectDate" id="selectDate" placeholder="{lang start_time}">
+                <label class="input-group-text" for="selectDate1">{lang to_date}</label>
+                <input type="text" class="form-control selectDate" id="selectDate1" placeholder="{lang finish_time}">
+            </div>
+        </div>
+        <div class="col-md-2 mb-3">
+            <button type="submit" class="btn btn-primary me-1" id="search-btn">{lang search}</button>
+            <button type="reset" class="btn btn-default" id="refreshsearch">{lang reset}</button>
+        </div>
+    </div>
+</div>
+<table class="layui-hide" id="mygroup" lay-filter="mygroup"></table>
+<script type="text/html" id="toolbar">
+	<div class="layui-btn-container">
+        <button type="button" id="getCheckDataBtn" class="layui-btn layui-btn-normal layui-btn-sm layui-btn-disabled" lay-event="getCheckData" disabled>{lang get_selected_row_data}</button>
+		<button type="button" class="layui-btn layui-btn-normal layui-btn-sm" lay-event="get">{lang refresh}</button>
+	</div>
+</script>
+<script type="text/html" id="barDemo">
+	<a class="layui-btn layui-btn-normal layui-btn-xs" lay-event="view">查看</a>
+</script>
+<script>
+    var search_data = {
+        'startdate': '',
+        'enddate': '',
+        'search':'',
+        'sort':'dateline',
+		'order':'desc'
+    };
+    $('.input-daterange').datepicker({
+        autoclose:true,
+        todayHighlight:true,
+        clearBtn:true,
+        language: 'zh_CN',
+        todayBtn: "linked",
+		calendarWeeks: true,
+        zIndexOffset: 120
+    });
+    
+	jQuery(document).ready(function(e) {
+	  layuiModules.table.render({
+		elem: '#mygroup',
+		url: '{MOD_URL}&op=mygroup&do=filelist&ajaxdata=json',
+		toolbar: '#toolbar',
+		defaultToolbar:['filter'],
+		title: '群组数据表格',
+        even:true,
+        cellMinWidth:120,
+        height: function(){
+            var otherHeight = $('.middleconMenu').outerHeight();
+            var MenuHeight = $('.middletopMenu').outerHeight();
+            return otherHeight-MenuHeight;
+        },
+		text: {
+			none: '<div class="emptyPage"><img src="static/image/common/no_list.png"><p class="emptyPage-text">{lang not_group}</p></div>'
+		},
+		page: {
+		  limit: 50, // 默认显示20行
+		  limits: [10, 20, 50, 100, 200, 500, 1000,2000,5000] // 可选的行数
+		}
+		,cols: [[
+            {type:'checkbox', fixed: 'left'}
+            ,{title: 'ID',width:80, fixed: 'left',style:'cursor:pointer;',type: 'numbers'}
+            ,{field:'orgname', title: '{lang group_name}',style:'cursor:pointer;', sort: true,templet: function(d) {return d.orgname;}}
+		  ,{field:'creater', title: '{lang explorer_groupperm_manager}',style:'cursor:pointer;', align: 'center', sort: true}
+		  ,{field:'usernum', title: '{lang membership}',style:'cursor:pointer;', align: 'center', sort: true}
+		  ,{field:'dateline', title: '{lang create_date}',style:'cursor:pointer;', align: 'left',sort: true}
+          ,{title: '{lang operation}',width:40,align:'center',style:'cursor:pointer;', toolbar: '#barDemo'}
+		]],
+		initSort: {
+			field: 'dateline',
+			type: 'desc'
+		},
+        done: function(){
+            checkStatusBtn(this.id);
+            $(document).off('click', '#search-btn').on('click', '#search-btn', function() {
+                executedynamisc_search();
+            });
+            $(document).off('click', '#refreshsearch').on('click', '#refreshsearch', function() {
+                $('#selectDate').val('');
+                $('#selectDate1').val('');
+                $('#mygroupsearch').val('all');
+                for (var o in search_data) {
+                    search_data[o] = '';
+                }
+                executedynamisc_search();
+            });
+        },
+	  });
+      layuiModules.table.on('checkbox(mygroup)', function(obj){
+        checkStatusBtn(obj.config.id);
+    });
+    //头工具栏事件
+	layuiModules.table.on('toolbar(mygroup)', function(obj){
+		var checkStatus = layuiModules.table.checkStatus(obj.config.id);
+		var data = checkStatus.dataCache;
+		switch(obj.event){
+            case 'getCheckData':
+                if (data.length === 0) {
+                    showmessage("{lang please_select_at_least_one_row}", 'danger', 3000, 1);
+                    return;
+                }
+                var template = '<div class="accordion">';
+                    data.forEach(function(item) {
+                        template += '<div class="accordion-item">';
+                        template += '<h2 class="accordion-header" id="Open-heading' + item.LAY_NUM + '">';
+                        template += '<button class="accordion-button" type="button" data-toggle="collapse" data-target="#Open-collapse' + item.LAY_NUM + '" aria-expanded="true" aria-controls="Open-collapse' + item.LAY_NUM + '">';
+                        template += 'ID：' + item.LAY_NUM;
+                        template += '</button>';
+                        template += '</h2>';
+                        template += '<div id="Open-collapse' + item.LAY_NUM + '" class="accordion-collapse collapse show" aria-labelledby="Open-heading' + item.LAY_NUM + '">';
+                        template += '<div class="accordion-body">';
+                        template += '<p><strong>{lang group_name}:</strong> ' + item.orgname + '</p>';
+                        template += '<p><strong>{lang explorer_groupperm_manager}:</strong> ' + item.creater + '</p>';
+                        template += '<p><strong>{lang membership}:</strong> ' + item.usernum + '</p>';
+                        template += '<p><strong>{lang create_date}:</strong> ' + item.dateline + '</p>';
+                    template += '</div>';
+                    template += '</div>';
+                    template += '</div>';
+                });
+                template += '</div>';
+                layer.alert(template, {
+                    title: '选中的记录'
+                });
+            break;
+            case 'get':
+            layuiModules.table.reloadData('mygroup', {
+                where: search_data, // 清空搜索参数
+                page: {
+                    curr: 1 //重新{lang to}第 1 页开始
+                }
+            });
+            break; 
+        };
+    });
+    //监听工具条
+	layuiModules.table.on('tool(mygroup)', function(obj){
+        var data = obj.dataCache;
+        if(obj.event === 'view'){
+            var hash = "#group&gid=" + data.orgid;
+            window.location.hash = hash;
+        }
+    });
+	// 行单击事件
+	layuiModules.table.on('row(mygroup)', function(obj) {
+		var dataCache = obj.dataCache;
+		var hash = "#group&gid="+dataCache.orgid;
+		window.location.hash = hash;
+	});
+    //触发排序事件 
+	layuiModules.table.on('sort(mygroup)', function(obj){
+		if(obj.field == 'usernum' || obj.field == 'creater') {
+            layer.msg('该排序结果为前端根据当前页数据进行排序', {offset:'10px'});
+        } else {
+            search_data.sort = obj.field;
+            search_data.order = obj.type;
+            layuiModules.table.reloadData('mygroup', {
+                initSort: obj,
+                where: search_data
+            });
+        }
+	});
+    function executedynamisc_search() {
+        search_data.search = $('#mygroupsearch').val();
+        search_data.startdate = $('#selectDate').val();
+        search_data.enddate = $('#selectDate1').val();
+        layuiModules.table.reloadData('mygroup', {
+		initSort: {
+			field: search_data.sort,
+			type: search_data.order
+		},
+		  where: search_data,
+		  page: {
+			curr: 1
+		  }
+		});
+    }
+});
+</script>

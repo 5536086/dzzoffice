@@ -1,0 +1,116 @@
+<div class="middlecenter middle-recycle scroll-100 scroll-srcollbars" style="z-index: 100;">
+<div class="middle-recycle">
+	<!--选择项开始-->
+    <div class="middletopMenu clearfix ">
+		<div class="row justify-content-end">
+			<div class="col-sm-4 mb-3">
+				<div class="dropdown float-end">
+					<button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">
+						<span id="search_data_text">{lang all}</span>
+					</button>
+					<ul class="dropdown-menu" id="position_menulist">
+						<li><a class="dropdown-item" href="javascript:;" data-val="">{lang all}</a></li>
+						<!--{if $homearr}-->
+						<li><a class="dropdown-item" href="javascript:;" data-val="f_$homearr[fid]">$homearr['name']</a></li>
+						<!--{/if}-->
+						<!--{loop $manageorg $v}-->
+						<li><a class="dropdown-item" href="javascript:;" data-val="g_$v['orgid']">$v['orgname']</a></li>
+						<!--{/loop}-->
+					</ul>
+				</div>
+			</div>
+			<div class="col-sm-6 mb-3">
+				<div class="input-daterange input-group" id="datepicker">
+					<label class="input-group-text" for="selectDate">{lang to}</label>
+					<input type="text" id="selectDate" class="form-control" placeholder="{lang start_time}"/>
+					<label class="input-group-text" for="selectDate1">{lang to_date}</label>
+					<input type="text" id="selectDate1" class="form-control" placeholder="{lang finish_time}"/>
+				</div>
+			</div>
+			<div class="col-md-2 mb-3">
+            <button type="submit" class="btn btn-primary me-1" id="search-btn">{lang search}</button>
+            <button type="reset" class="btn btn-default" id="refreshsearch">{lang reset}</button>
+        </div>
+		</div>
+    </div>
+    <!--选择项结束-->
+    <!--文件列表开始-->
+	<div id="filemanage-recycle-list" class="loadingmiddlecon"></div>
+    <!--文件列表结束-->
+</div>
+</div>
+<!--右侧菜单结束-->
+<div id="template_middleicon" style="display:none">
+<!--{template template_file_middleicon}-->
+</div>
+<div id="template_detaillist"  style="display:none">
+<!--{template template_file_detaillist_recycle}-->
+</div>
+<div id="template_toolButton" style="display:none">
+<!--{template template_file_toolButton}-->
+</div>
+<div id="template_file" style="display:none">
+<!--{template template_file_navtopfile}-->
+</div>
+<div id="template_nofile_notice" style="display:none">
+	<!--{template noFilePage-recycle}-->
+</div>
+<script type="text/javascript">
+    $(document).ready(function(e) {
+        var hash=location.hash;
+        _filemanage.getData(_explorer.appUrl+'&op=recycle&do=filelist&sid=recycle-list');
+    });
+   var searchrecyclejson = {'after':0,'before':0,'gid':0,'fid':0,'asc':0,'disp':0,'page':0};
+   $('.input-daterange').datepicker({
+        autoclose:true,
+        todayHighlight:true,
+        clearBtn:true,
+        language: 'zh_CN',
+		zIndex:'50',
+		todayBtn: "linked",
+		calendarWeeks: true,
+    });
+	$(document).off('click', '#search-btn').on('click', '#search-btn', function() {
+		searchRecycledata();
+	});
+	$(document).off('click', '#refreshsearch').on('click', '#refreshsearch', function() {
+		$('#selectDate').val('');
+		$('#selectDate1').val('');
+		$('#search_data_text').text('{lang all}');
+		searchrecyclejson.gid = 0;
+    	searchrecyclejson.fid = 0;
+		searchRecycledata();
+	});
+
+	//位置筛选项发生改变时
+	$(document).off('click.recycleposition').on('click.recycleposition','#position_menulist li',function(){
+		var val = $('a',this).data('val');
+        var text = $(this).text();
+        $('#search_data_text').text(text);
+		var pregf = /^f_\d+/;
+		var pregg = /^g_\d+/;
+		if(pregf.test(val)){
+			searchrecyclejson.fid = val.replace(/f_/,'');
+			searchrecyclejson.gid = 0;
+		}else if(pregg.test(val)){
+			searchrecyclejson.gid = val.replace(/g_/,'');
+			searchrecyclejson.fid = 0;
+		}else{
+			searchrecyclejson.gid = 0;
+			searchrecyclejson.fid = 0;
+		}
+		searchRecycledata();
+	})
+	//执行筛选
+	function searchRecycledata(){
+		searchrecyclejson.after = $('#selectDate').val();
+		searchrecyclejson.before = $('#selectDate1').val();
+        var filemanage=_filemanage.cons['recycle-list'];
+        filemanage.gid=(searchrecyclejson.gid > 0) ? searchrecyclejson.gid:'';
+
+        filemanage.fids=(searchrecyclejson.fid > 0) ?searchrecyclejson.fid:'';
+        filemanage.after=searchrecyclejson.after ? searchrecyclejson.after:'';
+        filemanage.before=searchrecyclejson.before ? searchrecyclejson.before:'';
+        _filemanage.cons['recycle-list'].pageClick();
+	}
+</script>

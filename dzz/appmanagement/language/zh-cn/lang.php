@@ -1,6 +1,31 @@
 <?php
-$lang = array (
-    'appname'=>'管理', 
+$lang = array(
+    'appname' => '后台管理',
+    'php_version_too_low' => 'php版本太低啦，请先升级php到5.3以上，建议使用php5.4及以上',
+    'step_env_check_desc' => '环境以及文件目录权限检查',
+    'online_user' => '在线用户',
+    'user_growth_statistics' => '用户增长统计',
+    'click_to_view' => '点击查看',
+    'file_num' => '文件个数',
+    'version_date' => '版本更新日期',
+    'online_num' => '当前在线数',
+    'user_total' => '用户总数',
+    'user_disable' => '禁用人数',
+    'last_activity_time' => '最后活动时间',
+    'online_time_update_time' => '在线时间最后更新',
+    'online_user_data' => '选中的在线用户数据',
+    'add_users' => '新增用户',
+    'login_user' => '仅登录用户',
+    'logout_user' => '仅未登录用户',
+    'overview' => '概览',
+    'MonthyChart' => '月线',
+    'contour' => '周线',
+    'date_line' => '日线',
+    'notset' => '不限制',
+    'data.second' => '秒',
+    'data.minute' => '分钟',
+    'data.hour' => '小时',
+    'data.day' => '天',
 );
 
 ?>

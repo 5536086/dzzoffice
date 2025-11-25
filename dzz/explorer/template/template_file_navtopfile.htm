@@ -1,0 +1,34 @@
+<div class="navtoperate dtheme">
+	<div class="select-toperate">
+	<div class="select-toperate select-toperate-left selectall-box fs-5">
+		<span class="mdi mdi-close dcolor" data-toggle="tooltip" data-placement="bottom" title="{lang close}"></span>
+		<span class="select-all mdi dcolor" title="{lang select_all}"></span>
+        <div class="select-info"></div>
+    </div>
+    <div class="select-toperate select-toperate-center">
+		<div class="shareMenu">
+		</div>
+		<!--回收站开始-->
+		<div class="recycle-option-icon" style="display: none;">
+            <button type="button" class="btn dcolor" onclick="_filemanage.RecoverFile()">
+                <span class="mdi mdi-rotate-left" data-toggle="tooltip" data-placement="bottom" data-original-title="{lang recoverfile}{lang typename_attach}"></span>
+            </button>
+            <button type="button" class="btn dcolor" onclick="_filemanage.finallyDelete()">
+                <span class="mdi mdi-delete" data-toggle="tooltip" data-placement="bottom" data-original-title="{lang completely_cancel}"></span>
+            </button>
+		</div>
+		<!--回收站结束-->
+	</div>
+	<div class="select-toperate select-toperate-right">
+    	<ul class="sizeMenu">
+        <li><a class="icons-thumbnail dcolor" href="javascript:;" onclick="_filemanage.Arrange(this,'')" iconview="4"><i class="mdi mdi-view-list" data-toggle="tooltip" data-placement="bottom" title="iconview"></i></a></li>
+        <li><a href="javascript:;" class="toggRight dcolor"><i class="mdi mdi-information" data-toggle="tooltip" data-placement="bottom"></i></a></li>
+       </ul>
+	</div>
+	</div>
+</div>
+<script type="text/javascript" reload="1">
+	jQuery(function () {
+	  jQuery('[data-toggle="tooltip"]').tooltip();
+	});
+</script>       

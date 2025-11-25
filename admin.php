@@ -12,8 +12,7 @@ define('ADMINSCRIPT', basename(__FILE__));
 define('BASESCRIPT', basename(__FILE__));
 define('CURSCRIPT', 'admin');
 define('APPTYPEID', 0);
-
-require './core/adminstart.php';
-
-
-
+define('DZZSCRIPT', 'index.php');
+define('USERSCRIPT', 'user.php');
+define('template', '1');
+require __DIR__ . '/core/adminstart.php';

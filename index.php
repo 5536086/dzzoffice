@@ -8,9 +8,8 @@
  */
 define('APPTYPEID', 1);
 define('CURSCRIPT', 'dzz');
+define('ADMINSCRIPT', 'admin.php');
+define('USERSCRIPT', 'user.php');
 define('DZZSCRIPT', basename(__FILE__));
 define('BASESCRIPT', basename(__FILE__));
-
-require './core/dzzstart.php';
-
-
+require __DIR__ . '/core/dzzstart.php';

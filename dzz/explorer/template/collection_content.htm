@@ -1,0 +1,30 @@
+<div class="middlecenter scroll-100 scroll-srcollbars">      	
+     <!--文件列表开始-->
+     <div id="filemanage-collect-1" class="loadingmiddlecon"></div>
+     <!--文件列表结束-->
+</div>
+<div id="template_middleicon" style="display:none">
+<!--{template template_file_middleicon}-->
+</div>
+<div id="template_detaillist"  style="display:none">
+<!--{template template_file_detaillist_collection}-->
+</div>
+<div id="template_toolButton" style="display:none">
+<!--{template template_file_toolButton}-->
+</div>
+<div id="template_file" style="display:none">
+<!--{template template_file_navtopfile}-->
+</div>
+<div id="template_nofile_notice" style="display:none">
+     <div class="emptyPage">
+	<img src="{MOD_PATH}/images/noFilePage-collect.png"/>
+	<p class="emptyPage-text">{lang no_collect}</p>
+</div>
+</div>
+<script type="text/javascript">
+   $(document).ready(function(e) {
+        _filemanage.getData(_explorer.appUrl+'&op=collection&do=filelist&sid=collect-1',function(obj){
+			jQuery('span.total').html(obj.total);
+		});
+    })
+</script>

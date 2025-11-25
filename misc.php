@@ -9,5 +9,6 @@
 define('APPTYPEID', 100);
 
 define('CURSCRIPT', 'misc');
-
-require './core/dzzstart.php';
+define('DZZSCRIPT', 'index.php');
+define('BASESCRIPT', basename(__FILE__));
+require __DIR__ . '/core/dzzstart.php';

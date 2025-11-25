@@ -1,0 +1,1098 @@
+<!--{template common/header_ajax}-->
+<!--{if $do == 'addgroup'}-->
+<!--新建群组-->
+<div class="modal-header">
+    <h4 class="modal-title text-truncate">{lang new_group}</h4>
+    <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
+</div>
+<form class="form-horizontal" action="{MOD_URL}&op=ajax&do=addgroup" method="post" onsubmit="return addgroup_submit(this)">
+    <input type="hidden" name="arr[aid]" value="" id="defaultcolor"/>
+    <div class="modal-body">
+        <div class="row mb-3"> 
+            <label class="col-sm-2">{lang name}</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" name="arr[orgname]">
+                <p id="name_error" class="input-error"></p>
+            </div>
+        </div>
+        <div class="row mb-1"> 
+            <label class="col-sm-2">{lang introduce}</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" name="arr[desc]">
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary cancel" data-dismiss="modal" aria-label="Close">{lang cancel}</button>
+        <button type="submit" class="btn btn-primary">{lang newly_build}</button>
+    </div>
+</form>
+<script type="text/javascript" reload="1">
+    //index添加群组弹出框头像
+    jQuery(document).ready(function (e) {
+        var colors = ['#6b69d6', '#a966ef', '#e9308d', '#e74856', '#f35b42', '#00cc6a', '#0078d7', '#5290f3', '#00b7c3', '#0099bc', '#018574', '#c77c52', '#ff8c00', '#68768a', '#7083cb', '#26a255'];
+        var num = parseInt(Math.random() * 10);
+        $('#defaultcolor').val(colors[num]);
+    });
+    $(document).on('mouseenter', '.head-portrait', function () {
+        $(this).addClass('head-hover');
+
+    })
+    $(document).on('mouseleave', '.head-portrait', function () {
+        $(this).removeClass('head-hover');
+
+    })
+    function addgroup_submit(form) {
+        var groupname = form['arr[orgname]'].value;
+        $.post(form.action, $(form).serialize(), function (data) {
+            if (data['success']) {
+                $('img_error').html();
+                $('name_error').html();
+                gid = data['gid'];
+                newgroupgid = data['gid'];
+                var html = '<li class="document-data" data-href="index.php?mod=explorer&op=group" data-hash="group' + gid + '" data-args="gid_' + gid + '">' + groupname + '</li>';
+                if ($('#group_menu').find('.document-data').length < 1) {
+                    $('#group_menu').html(html);
+                } else {
+                    $('#group_menu').append(html);
+                }
+                hideWindow('newGroup');
+                var userhref = 'index.php?mod=system&op=selorguser&template=1&callback=adduser_group&stype=2&moderator=0&range=1&onlymyorg=<!--{if $_G['setting']['explorer_mermoryonlymyorg'] == '1'}-->0<!--{else}-->1<!--{/if}-->&multiple=1&ids={$_G['uid']}';
+                showWindow('adduser', userhref, 'get', '0')
+            } else if (data['error']) {
+                $('#' + data['pos'] + '_error').html(data['msg']);
+                showmessage(data['msg'], 'error', 3000, 1);
+            }
+        }, 'json').fail(function (jqXHR, textStatus, errorThrown) {
+            showmessage('{lang do_failed}', 'error', 3000, 1);
+        });
+        return false;
+    }
+</script>
+<!--{elseif $do == 'selectperm'}-->
+<!--目录权限-->
+<div class="modal-header">
+    <h4 class="modal-title text-truncate" id="myModalLabel"><!--{if $fileinfo['isfolder']}-->目录<!--{else}-->文档<!--{/if}-->权限</h4>
+    <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
+</div>
+<form>
+    <div class="modal-body">
+        <div class="row">
+            <div class="col-sm-2 border-end" id="permgroup">
+                <h6>{lang select_permissions}：</h6>
+                <div class="form-check <!--{if !$inherit}-->hide<!--{/if}-->">
+                    <input type="radio" class="inputRadios form-check-input" name="inputRadios" value="$inheritperm" id="inputRadios" <!--{if $fperm == $inheritperm}-->checked="checked"<!--{/if}-->/>
+                    <label class="form-check-label" for="inputRadios">{lang superior_authority}</label>
+                </div>
+                <!--{loop $permgroups $val}-->
+                <div class="form-check">
+                    <input type="radio" class="inputRadios form-check-input" name="inputRadios" value="$val['perm']" id="$val['id']" <!--{if $new}--><!--{if $val['default']}-->checked="checked"<!--{/if}--><!--{else}--><!--{if $fperm && $fperm == ($val['perm'])}-->checked="checked"<!--{/if}--><!--{/if}-->/>
+                    <label class="form-check-label" for="$val['id']">$val[pername]</label>
+                </div>
+                <!--{/loop}-->
+            </div>
+            <div class="col-sm-10">
+                <h6>{lang permission_illustrate}：</h6>
+                <div class="container">
+                    <div class="row g-0" id="select_perm">
+                        <!--{loop $perms $k $v}-->
+                        <div class="form-check col-sm-6">
+                            <input type="checkbox" class="form-check-input" value="$v[1]" name="selectperm[]" id="perm$v[1]" <!--{if $v[1] & $fperm}-->checked="checked" <!--{/if}-->>
+                            <label class="form-check-label fs-6" for="perm$v[1]">
+                                <div class="all-yourself">
+                                    <span class="{$v[2]} view-eidt text-primary pe-1" data-perm="$v[1]"></span><span>$v[0]</span>
+                                </div>
+                            </label>
+                        </div>
+                        <!--{/loop}-->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">{lang cancel}</button>
+        <button type="button" class="btn btn-primary" onclick="chk_create(this.form)">{lang affirm}</button>
+    </div>
+</form>
+<script type="text/javascript" reload="1">
+    var permval = 0;
+    $(function () {
+        var perms = $('#permgroup input.inputRadios').filter(':checked').val();
+        if (typeof perms != 'undefined') {
+            $('#select_perm div input[name="selectperm[]"]').each(function () {
+                var perm = $(this).val();
+                if (perm & perms) {
+                    $(this).prop('checked', true);
+                } else {
+                    $(this).prop('checked', false);
+                }
+            })
+        }
+    })
+    $('#permgroup input.inputRadios').change(function () {
+        var perms = $(this).val();
+        permval = parseInt(perms);
+        $('#select_perm div input[name="selectperm[]"]').each(function () {
+            var perm = $(this).val();
+            if (perm & perms) {
+                $(this).prop('checked', true);
+            } else {
+                $(this).prop('checked', false);
+            }
+        })
+    })
+
+    $('#select_perm div input[name="selectperm[]"]').each(function () {
+        $(this).change(function () {
+            var perm = $(this).val();
+            if ($(this).prop('checked')) {
+                permval += parseInt(perm);
+            } else {
+                permval -= parseInt(perm);
+            }
+            chk_permgroup();
+        })
+    })
+    function chk_permgroup() {
+        $('#permgroup input.inputRadios').each(function () {
+            var perm = parseInt($(this).val());
+            if (permval == perm) {
+                $(this).prop('checked', true);
+            } else {
+                $(this).prop('checked', false);
+            }
+        })
+    }
+    function chk_create(form) {
+        $.post('index.php?mod=explorer&op=ajax&do=selectperm&permsubmit=true&fid={$fid}&rid={$rid}&new={$new}&setting={$setting}', $(form).serialize(), function (data) {
+            if (data['success']) {
+                if ('{$new}' == 1) {
+                    hideWindow('property');
+                    var node = $('#position').jstree(true).get_node('#group');
+                    $('#position').jstree('refresh', node);
+                    $('#position').jstree('correct_state', node);
+                    showmessage('{lang create_success}', 'success', 3000, 1);
+                } else if ('{$setting}') {
+                    showmessage('{lang update_success}', 'success', 3000, 1);
+                    hideWindow('property');
+                    if ($('.perm-tab').hasClass('active')) {
+                        jQuery('.perm-tab').click();
+                    }
+                } else {
+                    showmessage('{lang do_success}', 'success', 3000, 1);
+                    hideWindow('property');
+                }
+            }  else if(data['msg']) {
+                showmessage(data['msg'], 'error', 3000, 1);
+            } else {
+                showmessage('{lang do_failed}', 'error', 3000, 1);
+            }
+        }, 'json').fail(function (jqXHR, textStatus, errorThrown) {
+            showmessage('{lang do_failed}', 'error', 3000, 1);
+        });
+    }
+</script>
+<!--{elseif $do == 'addsearchcat'}-->
+<!--新建类型-->
+<div class="modal-header">
+    <h4 class="modal-title text-truncate" id="myModalLabel"><!--{if $cat[catname]}-->编辑类型<!--{else}-->{lang new_type}<!--{/if}--></h4>
+    <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
+</div>
+<form action="{MOD_URL}&op=ajax&do=addsearchcat" method="post" onsubmit="addsearchcat(this);return false;">
+    <div class="modal-body">
+        <div class="row mb-3"> 
+            <label class="col-sm-3">{lang typename}</label>
+            <div class="col-sm-9">
+                <input type="text" class="form-control" <!--{if $cat}-->value="$cat[catname]"<!--{/if}--> name="arr[catname]" max="20">
+            </div>
+        </div>
+        <div class="row mb-3"> 
+            <label class="col-sm-3">{lang filename_extension}<br>({lang more_ext_add_tips})</label>
+            <div class="col-sm-9">
+                <div class="input-group">
+                    <input type="text" class="form-control taginput" name="arr[ext]" reload="1" value="$cat[ext]" data-source="">
+                </div>
+                <span class="form-text">输入文件的扩展名后需要按回车确认</span>
+            </div>
+        </div>
+        <div class="row mb-1"> 
+            <label class="col-sm-3">{lang label}<br>({lang more_tag_add_tips})</label>
+            <div class="col-sm-9">
+                <div class="input-group">
+                    <input type="text" class="form-control taginput" name="arr[tag]" value="$cat[tag]">
+                </div>
+                <span class="form-text">输入标签后需要按回车确认</span>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <!--{if $cat}-->
+        <!--{if !$cat['default']}-->
+        <button type="button" class="btn btn-danger" onclick="delete_searchcat('$cat[id]')"><span class="mdi mdi-delete"></span>{lang delete_type}</button>
+        <!--{else}-->
+        <button type="button" class="btn btn-danger" disabled=""><span class="mdi mdi-delete"></span>{lang system_preinstall_not_allow_delete}</button>
+        <!--{/if}-->
+        <input type="hidden" name="editcatsearch" value="$cat[id]"/>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">{lang cancel}</button>
+        <button type="button" class="btn btn-primary" onclick="editsearchcat(this.form)">{lang save}</button>
+        <!--{else}-->
+        <input type="hidden" name="addcatsearch" value="true"/>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">{lang cancel}</button>
+        <button type="button" class="btn btn-primary" onclick="addsearchcat(this.form)">{lang create}</button>
+        <!--{/if}-->
+    </div>
+</form>
+<script type="text/javascript" reload="1">
+    //标签input框
+    $(document).ready(function () {
+        jQuery('input.taginput').each(function () {
+            $(this).tagsInput({
+                'width': '100%',
+                'height': 'auto',
+                'interactive': true,
+                'defaultText': '',
+                'removeWithBackspace': true,
+                'minChars': 0,
+                'maxChars': 0,
+                'placeholderColor': '#666666',
+                'typeahead': {
+                    source: $(this).data('source')
+                }
+            });
+        });
+    });
+    function addsearchcat(form) {
+        var formdata = $(form).serialize();
+        var dataform = $(form).serializeArray();
+        $.post(form.action, formdata, function (data) {
+            if (data['success']) {
+                var html = '<li class="nav-item"><a href="javascript:;" class="nav-link document-data" data-href="{MOD_URL}&op=catsearch" id="searchcat_' + data['insertid'] + '" ' +
+                    'data-hash="catsearch&do=searchfile&id=' + data['insertid'] + '" data-args="do_searchfile-id_' + data['insertid'] + '"> ' +
+                    '<i class="mdi mdi-file-cabinet"></i><span>' + dataform[0]['value'] + '</span></a></li>';
+                $('.typeaMenu').append(html);
+                hideWindow('addsearchcat');
+                showmessage('{lang explorer_add_succeed}','success',3000,1);
+                location.hash = '#catsearch&do=searchfile&id=' + data['insertid'];
+            } else {
+                hideWindow('addsearchcat');
+                if(data['msg']) {
+                    layer.alert(data['msg'], {skin:'lyear-skin-danger'});
+                } else {
+                    layer.alert(__lang.save_failed, {skin:'lyear-skin-danger'});
+                }
+            }
+        }, 'json').fail(function (jqXHR, textStatus, errorThrown) {
+            showmessage('{lang do_failed}', 'error', 3000, 1);
+        });
+    }
+    function editsearchcat(form) {
+        var formdata = $(form).serialize();
+        var dataform = $(form).serializeArray();
+        var catid = '$cat[id]';
+        $.post(form.action, formdata, function (data) {
+            if (data['success']) {
+                var html = '<a href="javascript:;" class="nav-link document-data active" data-href="{MOD_URL}&op=catsearch" id="searchcat_' + catid + '" ' +
+                    'data-hash="catsearch" data-args="do_searchfile-id_' + catid + '"> ' +
+                    '<i class="mdi mdi-file-cabinet"></i><span>' + dataform[0]['value'] + '</span></a>';
+                $('#searchcat_' + catid).replaceWith(html);
+                hideWindow('editcatsearch');
+                showmessage('{lang update_successfully}','success',3000,1);
+                setTimeout(function () {
+                    location.reload();
+                }, 2000);
+                return false;
+            } else {
+                hideWindow('editcatsearch');
+                if(data['msg']) {
+                    layer.alert(data['msg'], {skin:'lyear-skin-danger'});
+                } else {
+                    layer.alert(__lang.save_failed, {skin:'lyear-skin-danger'});
+                }
+            }
+            return false;
+        }, 'json').fail(function (jqXHR, textStatus, errorThrown) {
+            showmessage('{lang do_failed}', 'error', 3000, 1);
+        });
+        return false;
+    }
+    function delete_searchcat(id, msg, title) {
+        layer.confirm(__lang.delete_filenorecover_confirm, {title:__lang.delete_cat_confirm,skin:'lyear-skin-danger'}, function(index){
+            layer.msg(__lang.recovering_not_please_close, {offset:'10px',time:0});
+            $.post('{MOD_URL}&op=ajax&do=delsearchcat&id=$cat[id]', {'delcat': true}, function (data) {
+                if (data['success']) {
+                    hideWindow('editcatsearch');
+                    $('#searchcat_' + data['catid']).remove();
+                    layer.msg('{lang delete_success}！', {offset:'10px'});
+                    location.hash = '#catsearch&do=searchfile&id=' + data['previd'];
+                } else {
+                    hideWindow('editcatsearch');
+                    layer.alert('{lang delete_error}！', {skin:'lyear-skin-danger'});
+                }
+            }, 'json').fail(function (jqXHR, textStatus, errorThrown) {
+                showmessage('{lang do_failed}', 'error', 3000, 1);
+            });
+        });
+    }
+</script>
+<!--{elseif $do == 'newFolder' && $permselect}-->
+<!--{if !isset($arr['error'])}-->
+<!--新建文件夹-->
+<div class="modal-header">
+    <h4 class="modal-title text-truncate">{lang newfolder}</h4>
+    <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
+</div>
+<form onsubmit=" return chk_create(this);">
+    <div class="modal-body">
+        <div class="row mb-3"> 
+            <label for="foldername" class="col-sm-2">{lang name}</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" name="foldername" value="$name" id="foldername">
+                <input type="hidden" name="bz" value="$bz"/>
+            </div>
+        </div>
+        <!--{if !$noperm}-->
+        <div class="row">
+            <div class="col-sm-2 border-end" id="permgroup">
+                <h6>{lang select_permissions}：</h6>
+                <!--{if $inherit}-->
+                <div class="form-check">
+                    <input type="radio" class="inputRadios form-check-input" name="inputRadios" value="$inheritperm" checked="checked" id="inputRadios"/>
+                    <label class="form-check-label" for="inputRadios">{lang inheritperm}</label>
+                </div>
+                <!--{/if}-->
+                <!--{loop $permgroups $val}-->
+                <div class="form-check">
+                    <input type="radio" class="inputRadios form-check-input" name="inputRadios" value="$val['perm']" id="new_{$val['id']}" <!--{if $inheritperm == $val['perm']}-->checked="checked"<!--{/if}-->/>
+                    <label class="form-check-label" for="new_{$val['id']}">$val[pername]</label>
+                </div>
+                <!--{/loop}-->
+            </div>
+            <div class="col-sm-10">
+                <h6>{lang permission_illustrate}：</h6>
+                <div class="container">
+                    <div class="row g-0" id="select_perm">
+                        <!--{loop $perms $k $v}-->
+                        <div class="form-check col-sm-6">
+                            <input type="checkbox" class="form-check-input" {if $inheritperm & $v[1]} checked="checked" {/if}value="$v[1]" name="selectperm[]" id="newperm_{$v[1]}">
+                            <label class="form-check-label fs-6" for="newperm_{$v[1]}">
+                                <div class="all-yourself">
+                                    <span class="{$v[2]} view-eidt text-primary pe-1" data-perm="$v[1]"></span>$v[0]
+                                </div>
+                            </label>
+                        </div>
+                        <!--{/loop}-->
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--{/if}-->
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">{lang cancel}</button>
+        <button type="submit" class="btn btn-primary">{lang create}</button>
+    </div>
+</form>
+<script type="text/javascript" reload="1">
+    var permval = 0;
+    $(function () {
+        var perms = $('#permgroup input.inputRadios').filter(':checked').val();
+        if (perms) {
+            $('#select_perm div input[name="selectperm[]"]').each(function () {
+                var perm = $(this).val();
+                if (perm & perms) {
+                    $(this).prop('checked', true);
+                } else {
+                    $(this).prop('checked', false);
+                }
+            })
+        }
+
+    })
+    $('#permgroup input.inputRadios').change(function () {
+        var perms = $(this).val();
+        permval = parseInt(perms);
+        $('#select_perm div input[name="selectperm[]"]').each(function () {
+            var perm = $(this).val();
+            if (perm & perms) {
+                $(this).prop('checked', true);
+            } else {
+                $(this).prop('checked', false);
+            }
+        })
+    })
+
+    $('#select_perm div input[name="selectperm[]"]').each(function () {
+        $(this).change(function () {
+            var perm = $(this).val();
+            if ($(this).prop('checked')) {
+                permval += parseInt(perm);
+            } else {
+                permval -= parseInt(perm);
+            }
+            chk_permgroup();
+        })
+    })
+    function chk_permgroup() {
+        $('#permgroup input.inputRadios').each(function () {
+            var perm = parseInt($(this).val());
+            if (permval == perm) {
+                $(this).prop('checked', true);
+            } else {
+                $(this).prop('checked', false);
+            }
+        })
+    }
+    function chk_create(form) {
+        $.post('{MOD_URL}&op=ajax&do=newFolder&createfolder=true&fid={$fid}', $(form).serialize(), function (data) {
+            if (data.msg == 'success') {
+                _explorer.sourcedata.icos[data.rid] = data;
+                _filemanage.cons['f-' + '{$fid}'].CreateIcos(data);
+                <!--{if !$bz}-->
+                var node = jQuery('#u-' + data.pfid + ',#f-' + data.pfid)
+                jQuery('#position').jstree('refresh', node);
+                jQuery('#position').jstree('correct_state', node);
+                <!--{/if}-->
+                layer.msg('已创建：'+data.name, {offset:'10px'});
+                hideWindow('newFolder');
+            } else if (data.error) {
+                layer.alert(data.error, {skin:'lyear-skin-danger'});
+            }else {
+                layer.alert('{lang do_failed}', {skin:'lyear-skin-danger'});
+            }
+        }, 'json').fail(function (jqXHR, textStatus, errorThrown) {
+            showmessage('{lang do_failed}', 'error', 3000, 1);
+        });
+        return false;
+    }
+</script>
+<!--{else}-->
+<script>
+    hideWindow('newFolder');
+    layer.alert('{$arr[error]}', {skin:'lyear-skin-danger'});
+</script>
+<!--{/if}-->
+<!--{elseif $do == 'property' || $do == 'version' || $do == 'dynamic' || $do=='perm' || $do=='comment'}-->
+<!--{if !$error}-->
+<div class="modal-header">
+    <h4 class="modal-title text-truncate">
+        <!--{if $fileinfo['ismulti']}-->
+        <i class="mdi mdi-file-multiple text-primary"></i> {lang more_select}
+        <!--{else}-->
+        <!--{if $fileinfo['img']}-->
+        <img src="$fileinfo['img']" class="wh-32 pe-1">
+        <!--{/if}-->
+        <!--{if $fileinfo[fname]}-->
+        $fileinfo[fname]
+        <!--{else}-->
+        $fileinfo[name]
+        <!--{/if}-->
+        <!--{/if}-->
+    </h4>
+    <div class="float-end">
+        <button type="button" class="modal-fullscreen-btn"><i class="mdi"></i></button>
+        <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
+    </div>
+</div>
+<!--{if !$fileinfo['ismulti'] && !$bz}-->
+<ul class="nav nav-tabs mb-0">
+    <li class="nav-item">
+        <a class="nav-link <!--{if $do=='property'}-->active<!--{/if}-->" href="{MOD_URL}&op=ajax&do=property&rid=$fileinfo['rid']&fid=$fileinfo['fid']" ajaxtarget="fwin_content_property">{lang property}</a>
+    </li>
+    <!--{if $fileinfo[fid] !== '-1'}-->
+    <li class="nav-item">
+        <a class="nav-link <!--{if $do=='perm'}-->active<!--{/if}-->" href="{MOD_URL}&op=ajax&do=perm&property=1&fid=$fileinfo['fid']&rid=$fileinfo['rid']" ajaxtarget="fwin_content_property">{lang jurisdiction}</a>
+    </li>
+    <!--{/if}-->
+    <!--{if !$fileinfo['isfolder']}-->
+    <li class="nav-item">
+        <a class="nav-link property-version-tab <!--{if $do=='version'}-->active<!--{/if}-->" href="{MOD_URL}&op=ajax&do=version&property=1&rid=$fileinfo['rid']" data-rid="$fileinfo['rid']" ajaxtarget="fwin_content_property">{lang history_revision}</a>
+    </li>
+    <!--{/if}-->
+    <li class="nav-item">
+        <a class="nav-link property-comment-tab <!--{if $do=='comment'}-->active<!--{/if}-->" href="{MOD_URL}&op=ajax&do=comment&property=1&rid=$fileinfo['rid']&fid=$fileinfo['fid']" data-rid="$fileinfo['rid']" data-fid="$fileinfo['fid']" ajaxtarget="fwin_content_property">{lang comment}</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link <!--{if $do=='dynamic'}-->active<!--{/if}-->" href="{MOD_URL}&op=ajax&do=dynamic&property=1&rid=$fileinfo['rid']&fid=$fileinfo['fid']" ajaxtarget="fwin_content_property">{lang dynamic}</a>
+    </li>
+</ul>
+<!--{/if}-->
+<div class="modal-body">
+    <!--{if $do=='property'}-->
+    <!--{template template_property_list}-->
+    <!--{elseif $do == 'version'}-->
+    <!--{template template_historyversion_list}-->
+    <!--{elseif $do == 'dynamic' || $do == 'comment'}-->
+    <!--{template template_dynamic_list}-->
+    <!--{elseif $do == 'perm'}-->
+    <!--{template template_perm_list}-->
+    <!--{/if}-->
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-dismiss="modal">{lang close}</button>
+</div>
+<!--{else}-->
+<script type="text/javascript" reload="1">
+    hideWindow('property');
+    layer.alert('{$error}', {skin:'lyear-skin-danger'});
+</script>
+<!--{/if}-->
+<!--{elseif $do == 'share'}-->
+<!--{if !isset($arr['error'])}-->
+<!--创建分享-->
+<form action="{MOD_URL}&op=ajax&do=share" method="post" onSubmit="return subshare(this);">
+    <div class="modal-header">
+        <h4 class="modal-title text-truncate"><!--{if $share['id']}-->{lang edit_share}<!--{else}-->{lang create_share}<!--{/if}--></h4>
+        <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
+    </div>
+    <div class="modal-body">
+        <div class="row mb-3"> 
+            <label class="col-sm-2" for="sharetitle">{lang share_title}</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" name="share[title]" value="$share[title]" id="sharetitle"/>
+                <input type="hidden" name="rid" value="$files"/>
+                <input type="hidden" name="id" value="$share[id]" id="shareid"/>
+                <input type="hidden" name="bz" value="$bz"/>
+                <input type="hidden" name="delshare" <!--{if $share['id']}--> value="1"<!--{else}-->value="0"<!--{/if}--> id="delshare" />
+            </div>
+        </div>
+        <div class="row mb-3">
+            <label class="col-sm-2" for="selecttime">{lang expiration_time}</label>
+            <div class="col-sm-10">
+                <div class="has-feedback">
+                    <span class="mdi mdi-calendar-month" aria-hidden="true"></span>
+                    <input type="text" class="form-control" placeholder="{lang expiration_time}" name="share[endtime]" id="selecttime" value="{$share['endtime']}"/>
+                </div>
+                <span class="form-text">{lang left_blank_or_0_time_unlimited}</span>
+            </div>
+        </div>
+        <div class="row mb-3">
+            <label class="col-sm-2" for="sharetimes">{lang sharetimes}</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" placeholder="{lang sharing_restriction_times}" name="share[times]" value="$share[times]" id="sharetimes"/>
+                <span class="form-text">{lang left_blank_or_0_means_unlimited}</span>
+            </div>
+        </div>
+        <div class="row mb-3">
+            <label class="col-sm-2" for="sharepassword">{lang extract_password}</label>
+            <div class="col-sm-10">
+                <div class="input-group">
+                    <input type="text" class="form-control" placeholder="{lang share_password}" name="share[password]" value="$share['password']" id="sharepassword"/>
+                    <button class="btn btn-primary" type="button" onclick="randomPass()">随机生成</button>
+                </div>
+                <span class="form-text">{lang leave_blank_to_indicate_the_password_not_set}</span>
+            </div>
+        </div>
+        <div class="row mb-1">
+            <label class="col-sm-2">分享权限</label>
+            <div class="col-sm-10">
+                <div class="gallery-grid">
+                    <div class="gallery-item">
+                        <input class="form-check-input" type="checkbox" id="sharedownload" name="perm[]" value="1" <!--{if $share['perm']}--><!--{if in_array(1,$share['perm'])}-->checked="checked"<!--{/if}--><!--{/if}-->>
+                        <label class="form-check-label" for="sharedownload">禁用下载</label>
+                    </div>
+                    <div class="gallery-item">
+                        <input class="form-check-input" type="checkbox" id="shareview" name="perm[]" value="2" <!--{if $share['perm']}--><!--{if in_array(2,$share['perm'])}-->checked="checked"<!--{/if}--><!--{/if}-->>
+                        <label class="form-check-label" for="shareview">禁用预览</label>
+                    </div>
+                    <div class="gallery-item">
+                        <input class="form-check-input" type="checkbox" id="sharelogin" name="perm[]" value="3" <!--{if $share['perm']}--><!--{if in_array(3,$share['perm'])}-->checked="checked"<!--{/if}--><!--{/if}-->>
+                        <label class="form-check-label" for="sharelogin">仅登录使用</label>
+                    </div>
+                    <div class="gallery-item">
+                        <input class="form-check-input" type="checkbox" id="shareedit" name="perm[]" value="4" <!--{if $share['perm']}--><!--{if in_array(4,$share['perm'])}-->checked="checked"<!--{/if}--><!--{/if}-->>
+                        <label class="form-check-label" for="shareedit">允许编辑</label>
+                    </div>
+                    <div class="gallery-item">
+                        <input class="form-check-input" type="checkbox" id="sharecreate" name="perm[]" value="5" <!--{if $share['perm']}--><!--{if in_array(5,$share['perm'])}-->checked="checked"<!--{/if}--><!--{/if}-->>
+                        <label class="form-check-label" for="sharecreate">可读写(上传,新建)</label>
+                    </div>
+                    <div class="gallery-item">
+                        <input class="form-check-input" type="checkbox" id="sharecomment" name="perm[]" value="6" <!--{if $share['perm']}--><!--{if in_array(6,$share['perm'])}-->checked="checked"<!--{/if}--><!--{/if}-->>
+                        <label class="form-check-label" for="sharecomment">{lang comment}</label>
+                    </div>
+                </div>
+                <span class="form-text">具体权限的有效性取决于相关应用场景的实际使用情况。</span>
+            </div>
+          </div>
+        <div class="row mb-1" id="sharurldiv" <!--{if !$share[shareurl]}-->style="display:none;"<!--{/if}-->>
+            <label class="col-sm-2" for="shareurl">{lang share_address}</label>
+            <div class="col-sm-10">
+                <div class="input-group">
+                    <input type="text" class="form-control" placeholder="{lang copy_address}" value="$share[shareurl]" id="shareurl" onfocus="this.select()" disabled="disabled"/>
+                    <span class="input-group-text" onclick="openshare()"><i class="mdi mdi-open-in-new" data-toggle="tooltip" data-placement="bottom" title="{lang open}"></i></span>
+                    <span class="input-group-text" onclick="copyShareIink()"><i class="mdi mdi-file-document-outline" data-toggle="tooltip" data-placement="bottom" title="复制链接"></i></span>
+                    <span class="input-group-text" onclick="copyShareInfo()"><i class="mdi mdi-file-document-multiple" data-toggle="tooltip" data-placement="bottom" title="复制信息"></i></span>
+                </div>
+            </div>
+        </div>
+        <!--{if $share['id']}-->
+        <div class="row mt-3 mb-1">
+            <label class="col-sm-2">分享统计</label>
+            <div class="col-sm-10">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div title="{lang view_count}">
+                            <i class="mdi mdi-eye-outline me-2"></i>$share[views]
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div title="{lang download_times}">
+                            <i class="mdi mdi-download-outline me-2"></i>$share[downs]
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div title="{lang share_time}">
+                            <i class="mdi mdi-clock-outline me-2"></i>{eval echo dgmdate($share['dateline'], 'u')}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--{/if}-->
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-danger pull-left <!--{if !$share[shareurl]}--> hide <!--{/if}--> delshare" onclick="removeshare(this.form)">{lang delete_share}
+        </button>
+        <button type="submit" class="btn btn-primary" data-loading-text="{lang create_in}">
+            <!--{if $share['id']}-->
+            {lang edit_share}
+            <!--{else}-->
+            {lang create_share}
+            <!--{/if}-->
+        </button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">{lang close}</button>
+    </div>
+</form>
+<script type="text/javascript" reload="1">
+    jQuery(document).ready(function (e) {
+        jQuery('[data-toggle="tooltip"]').tooltip();
+    });
+    layuiModules.laydate.render({
+        elem: '#selecttime',
+        type: 'datetime',
+        format: 'yyyy-MM-dd HH:mm',
+        calendar: true,
+        min: '{eval echo date("Y-m-d H:i:s", TIMESTAMP);}'
+    });
+    function copyShareIink() {
+        var sharelink = $('#shareurl').val();
+        var tempInput = document.createElement("input");
+        document.body.appendChild(tempInput);
+        tempInput.value = sharelink;
+        tempInput.select();
+        document.execCommand("copy");
+        document.body.removeChild(tempInput);
+        layer.msg('信息已复制到剪贴板');
+    }
+    function copyShareInfo() {
+        var title = $('#sharetitle').val();
+        var sharelink = $('#shareurl').val();
+        var password = $('#sharepassword').val();
+        var tempInput = document.createElement("input");
+        document.body.appendChild(tempInput);
+        var copyText = "" + title + "\n 链接：" + sharelink;
+        if (password) {
+            copyText += " \n提取码: " + password;
+        }
+        tempInput.value = copyText;
+        tempInput.select();
+        document.execCommand("copy");
+        document.body.removeChild(tempInput);
+        layer.msg('信息已复制到剪贴板');
+    }
+    function openshare() {
+        var url = $('#shareurl').val();
+        if (url) {
+            window.open(url);
+        } else {
+            layer.msg('分享链接为空', {offset:'10px'});
+        }
+
+    }
+    function subshare(form) {
+        var button = $(form).find('button[type=submit]')
+        button.text('{lang edit_share}').button('loading');
+        $.post(form.action, $(form).serialize(), function (data) {
+            if (data['success']) {
+                button.button('reset');
+                $('#sharurldiv').show();
+                $('#shareurl').val(data['shareurl']);
+                $('.allowContextMenu').attr('dsrc', data['qrcode']);
+                $('#copyshare').data('clipboard', data['shareurl']);
+                $(form).find('.delshare').removeClass('hide');
+                $('#shareid').val(data['shareid']);
+                $('#delshare').val(1);
+                <!--{if $share['id']}-->
+                layer.msg('分享编辑成功', {offset:'10px'});
+                <!--{else}-->
+                <!--{if !$more}-->
+                var filemanage = _filemanage.cons[_filemanage.winid];
+	            var containid = 'filemanage-' + _filemanage.winid;
+                var selector = '#' + containid + ' .Icoblock[rid={$files}]';
+                var icoblock = jQuery(selector);
+                if (icoblock.length > 0) {
+                    icoblock.find('.share-item').removeClass('hide');
+                }
+                layer.msg('{lang share_creation_success}', {offset:'10px'});
+                <!--{/if}-->
+                <!--{/if}-->
+                <!--{if $table}-->
+                tablereload();
+                <!--{/if}-->
+            } else if(data['error']) {
+                layer.msg(data['error'], {offset:'10px'});
+            } else {
+                layer.msg('{lang operation_error}', {offset:'10px'});
+            }
+        }, 'json').fail(function (jqXHR, textStatus, errorThrown) {
+            showmessage('{lang do_failed}', 'error', 3000, 1);
+        });
+        return false;
+    }
+    function removeshare(form) {
+        layer.confirm('{lang delete_share_links_lose_efficacy_sure}', {skin:'lyear-skin-danger'}, function(index){
+            $.post('{MOD_URL}&op=ajax&do=share&do=del', $(form).serialize(), function (data) {
+                layer.msg(__lang.deleting_not_please_close, {offset:'10px',time:0});
+                if (data['success']) {
+                   <!--{if $table}-->
+                    tablereload();
+                    <!--{/if}-->
+                    layer.msg('{lang delete_share_succeed}', {offset:'10px'});
+                    <!--{if !$more}-->
+                    var filemanage = _filemanage.cons[_filemanage.winid];
+                    var containid = 'filemanage-' + _filemanage.winid;
+                    var selector = '#' + containid + ' .Icoblock[rid={$files}]';
+                    var icoblock = jQuery(selector);
+                    if (icoblock.length > 0) {
+                        icoblock.find('.share-item').addClass('hide');
+                    }
+                    layer.msg('{lang share_creation_success}', {offset:'10px'});
+                    <!--{/if}-->
+                    hideWindow('share');
+                } else {
+                    layer.msg('删除失败', {offset:'10px'});
+                }
+            }, 'json').fail(function (jqXHR, textStatus, errorThrown) {
+                showmessage('{lang do_failed}', 'error', 3000, 1);
+            });
+        });
+    }
+    function randomPass() {
+        var result = generateRandomCode(4);
+		jQuery('#sharepassword').val(result).trigger('blur');
+	}
+
+</script>
+<!--{else}-->
+<script type="text/javascript">
+    hideWindow('share');
+    layer.alert('{$arr[error]}', {skin:'lyear-skin-danger'});
+</script>
+<!--{/if}-->
+<!--{elseif $do == 'showtips'}-->
+<!--群组创建成功或者失败提示框-->
+<div class="modal-body">{$msgtext}</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-primary" data-dismiss="modal" aria-label="Close">{lang confirms}</button>
+</div>
+<!--{elseif $do == 'newLink'}-->
+<!--{if !isset($arr[error])}-->
+<form onsubmit="return false;">
+    <div class="modal-header">
+        <h4 class="modal-title text-truncate">{lang add_url}</h4>
+        <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
+    </div>
+    <div class="modal-body">
+        <div class="row mb-3"> 
+            <label class="col-sm-2">{lang name}</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" value="" name="name">
+            </div>
+        </div>
+        <div class="row mb-1"> 
+            <label class="col-sm-2">{lang link} <span class="text-danger">*</span></label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control focus" value="http://" name="link">
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">{lang close}</button>
+        <button type="button" class="btn btn-primary" onclick="chk_link(this.form)">{lang submit}</button>
+    </div>
+</form>
+<script type="text/javascript" reload="1">
+    function chk_link(form) {
+        $.post(MOD_URL + '&op=ajax&do=linkadd&createlink=true&fid=' + '{$fid}', $(form).serialize(), function (data) {
+            if (data.msg == 'success') {
+                _explorer.sourcedata.icos[data.rid] = data;
+                _filemanage.cons['f-' + '{$fid}'].CreateIcos(data);
+                hideWindow('newLink');
+                layer.msg('{lang add_success}', {offset:'10px'});
+            } else if (data.error) {
+                layer.alert(data.error, {skin:'lyear-skin-danger'});
+            } else {
+                layer.alert('{lang do_failed}', {skin:'lyear-skin-danger'});
+            }
+        }, 'json').fail(function (jqXHR, textStatus, errorThrown) {
+            showmessage('{lang do_failed}', 'error', 3000, 1);
+        });
+    }
+</script>
+<!--{else}-->
+<script type="text/javascript">
+    hideWindow('newLink');
+    layer.alert('{$arr[error]}', {skin:'lyear-skin-danger'});
+</script>
+<!--{/if}-->
+<!--{elseif $do == 'infoversion'}-->
+<!--{if !$error}-->
+<div class="modal-header">
+    <h4 class="modal-title text-truncate">$fileinfo[name] {lang version_information}</h4>
+    <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+    <div class="row mb-1"> 
+        <label class="col-sm-3">{lang name}</label>
+        <div class="col-sm-9 text-break">$fileinfo[name] <span class="badge badge-outline-primary"><!--{if $fileinfo['vid'] == $versioninfo['vid']}-->{lang principal_edition}<!--{else}-->V$versioninfo['vid']<!--{/if}--></span></div>
+    </div>
+    <!--{if $versioninfo[vname]}-->
+    <div class="row mb-1"> 
+        <label class="col-sm-3">{lang version_name}</label>
+        <div class="col-sm-9">$versioninfo[vname]</div>
+    </div>
+    <!--{/if}-->
+    <!--{if $versioninfo[vdesc]}-->
+    <div class="row mb-1">
+        <label class="col-sm-3">{lang version_desc}</label>
+        <div class="col-sm-9">$versioninfo[vdesc]</div>
+    </div>
+    <!--{/if}-->
+    <!--{if $versioninfo[ftype]}-->
+    <div class="row mb-1"> 
+        <label class="col-sm-3">{lang type}</label>
+        <div class="col-sm-9">$versioninfo['ftype']</div>
+    </div>
+    <!--{/if}-->
+    <div class="row mb-1"> 
+        <label class="col-sm-3">{lang position}</label>
+        <div class="col-sm-9">$fileinfo[realpath]</div>
+    </div>
+    <div class="row mb-1">
+        <label class="col-sm-3">{lang creator}</label>
+        <div class="col-sm-9">$versioninfo['username']</div>
+    </div>
+    <div class="row mb-1"> 
+        <label class="col-sm-3">{lang big_small}</label>
+        <div class="col-sm-9">$versioninfo['ffsize']</div>
+    </div>
+    <!--{if $versioninfo[fdateline]}-->
+    <div class="row mb-1"> 
+        <label class="col-sm-3">{lang create_time}</label>
+        <div class="col-sm-9">$versioninfo[fdateline]</div>
+    </div>
+    <!--{/if}-->
+    <!--{if $attachment}-->
+    <div class="row mb-1">
+        <label class="col-sm-3">文件地址</label>
+        <div class="col-sm-9 text-break"><a href="$attachment" target="_blank">$attachment</a></div>
+    </div>
+    <!--{/if}-->
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-dismiss="modal">{lang close}</button>
+</div>
+<!--{else}-->
+<script type="text/javascript" reload="1">
+    hideWindow('property');
+    layer.alert('{$error}', {skin:'lyear-skin-danger'});
+</script>
+<!--{/if}-->
+<!--{elseif $do == 'editFileVersionInfo'}-->
+<!--编辑版本信息-->
+<form action="" method="post" onsubmit="return false;">
+    <div class="modal-header">
+        <h4 class="modal-title text-truncate">{lang edit_version_information}</h4>
+        <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
+    </div>
+    <div class="modal-body">
+        <div class="row mb-3"> 
+            <label class="col-sm-2">{lang version_name}</label>
+            <div class="col-sm-10">
+                <input class="form-control" id="vnametestarea" name="vname" value="$versioninfo['vname']">
+            </div>
+        </div>
+        <div class="row"> 
+            <label class="col-sm-2">{lang version_desc}</label>
+            <div class="col-sm-10">
+                <textarea class="form-control" id="vdesctestarea" name="vdesc" oninput="limitTextarea(this, 120)">$versioninfo['vdesc']</textarea>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <input type="hidden" name="rid" value="$rid"/>
+        <input type="hidden" name="vid" value="$vid"/>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">{lang cancel}</button>
+        <button type="submit" class="btn btn-primary saveversioninfo">{lang save}</button>
+    </div>
+</form>
+<script type="text/javascript" reload="1">
+    function limitTextarea(textarea, maxLength) {
+        if (textarea.value.length > maxLength) {
+            showmessage('限制120字以内！','error',3000,1);
+            textarea.value = textarea.value.substring(0, maxLength);
+        }
+    }
+    //编辑版本信息
+    $(document).off('click.versioninfoedit').on('click.versioninfoedit', '.saveversioninfo', function () {
+        var obj = $(this);
+        var rid = $(this).closest('.modal-footer').find('input[name="rid"]').val();
+        var vid = $(this).closest('.modal-footer').find('input[name="vid"]').val();
+        var querydata = {};
+        //如果未找到版本id,或者版本id为0,即此文件暂无版本,则获取其rid增加版本，并设置版本名称
+        querydata['rid'] = rid;
+        if (vid && vid != 0) {
+            querydata['vid'] = vid;
+        }
+        var vname = $('#vnametestarea').val();
+        var vnamePreg = /^\s*$/;
+        if (vnamePreg.test(vname)) {
+            layer.alert('{lang input_version_name}', {skin:'lyear-skin-danger'});
+            return false;
+        } else {
+            querydata['vname'] = vname;
+        }
+        var vdesc = $('#vdesctestarea').val();
+        if (vdesc) {
+            querydata['vdesc'] = vdesc;
+        }
+        $.post('{MOD_URL}&op=dzzcp&do=setversionname', querydata, function (data) {
+            if (data['vid']) {
+                var vdeschtml = '';
+                if(vdesc) {
+                    var vdeschtml = '<span class="form-text text-truncate">' + vdesc + '</span>';
+                }
+                if (querydata['vid']) {
+                    if (querydata['vid'] == data['primaryvid']) {
+                        var html = '<div class="fw-bold text-truncate">' + vname + '</div>'+vdeschtml+'<div class="versioninfos">' + data['fdateline'] +
+                            '<span class="badge badge-outline-primary">{lang principal_edition}</span></div>';
+                    } else {
+                        var html = '<div class="fw-bold text-truncate">' + vname + '</div>'+vdeschtml+'<div class="versioninfos">' + data['fdateline'] + '</div>';
+                    }
+                    $('.version_' + data['vid']).find('div.unameMenu-upload').html(html);
+                } else {
+                    if ($('.version-tab').hasClass('active')) {
+                        jQuery('.version-tab').click();
+                    }
+                    if ($('.index-tab').hasClass('active')) {
+                        _filemanage.prototype._selectInfo();
+                    }
+                }
+                obj.data('vid', data['vid']);
+                hideWindow('property');
+                showmessage('{lang do_success}','success',3000,1);
+            } else if (data['error']) {
+                layer.alert(data['error'], {skin:'lyear-skin-danger'});
+            } else {
+                layer.alert('{lang do_failed}', {skin:'lyear-skin-danger'});
+            }
+        }, 'json').fail(function (jqXHR, textStatus, errorThrown) {
+            showmessage('{lang do_failed}', 'error', 3000, 1);
+        });
+        return false;
+    })
+</script>
+<!--{elseif $do=='tag'}-->
+<!--编辑标签-->
+<form action="{MOD_URL}&op=ajax&do=tag" method="post" onsubmit="save_tag(this);return false;">
+    <input type="hidden" name="rid" value="$rid"/>
+    <input type="hidden" name="addtag" value="1"/>
+    <input type="hidden" name="ajaxdata" value="json"/>
+    <div class="modal-header">
+        <h4 class="modal-title text-truncate">{lang edit_label}</h4>
+        <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
+    </div>
+    <div class="modal-body">
+        <div class="row mb-1"> 
+            <label class="col-sm-3">{lang add_label_return_car}</label>
+            <div class="col-sm-9">
+                <div class="input-group">
+                    <input type="text" class="form-control taginput_tag" name="tags" data-source="$tagstr" value="$tagval">
+                </div>
+                <span class="form-text">输入标签后需要按回车确认</span>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">{lang cancel}</button>
+        <button type="submit" class="btn btn-primary">{lang save}</button>
+    </div>
+</form>
+<script type="text/javascript" reload="1">
+    //标签input框
+    $(document).ready(function () {
+        $('.taginput_tag').tagsInput({
+            'height': 'auto',
+            'width': '100%',
+            'interactive': true,
+            'defaultText': '',
+            'removeWithBackspace': true,
+            'minChars': 0,
+            'maxChars': 0,
+            'placeholderColor': '#666666',
+            'typeahead': {
+                source: $(this).data('source')
+            }
+        });
+    });
+    function save_tag(form) {
+        var rid = '$rid';
+        $.post(form.action, jQuery(form).serialize(), function (data) {
+            if (data['success']) {
+                var html = '';
+                if (data['tagsadd']) {
+                    for (var o in data['tagsadd']) {
+                        html += '<span class="layui-badge-rim m-1" data-tid="' + data['tagsadd'][o]['tid'] + '" id="' + rid + '-' + data['tagsadd'][o]['tid'] + '">' + data['tagsadd'][o]['tagname'] + '</span>';
+                    }
+                }
+
+                if (data['tagsdel']) {
+                    for (var o in data['tagsdel']) {
+                        $('#' + rid + '-' + data['tagsdel'][o]['tid']).remove();
+                    }
+                }
+                var taglist = $('#taglist-' + rid);
+                if (html || taglist.children('span').length > 0) {
+                    if (html) {
+                        if (taglist.children('span').length < 1) {
+                            taglist.html(html);
+                        } else {
+                            taglist.append(html);
+                        }
+                    }
+                } else {
+                    taglist.html('{lang no_labels_set}');
+                }
+
+                showmessage('{lang do_success}','success',3000,1);
+                hideWindow('$_GET[handlekey]');
+            } else if(data['msg']) {
+                layer.alert(data['msg'], {skin:'lyear-skin-danger'});
+            } else {
+                layer.alert('{lang do_failed}', {skin:'lyear-skin-danger'});
+            }
+        }, 'json').fail(function (jqXHR, textStatus, errorThrown) {
+            showmessage('{lang do_failed}', 'error', 3000, 1);
+        });
+        return false;
+    }
+</script>
+<!--{else}-->
+<!--{if isset($arr[error])}-->
+<script type="text/javascript" reload="1">
+    layer.alert('{$arr[error]}', {skin:'lyear-skin-danger'});
+</script>
+<!--{/if}-->
+<!--{/if}-->
+<!--{template common/footer_ajax}-->

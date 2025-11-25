@@ -1,0 +1,31 @@
+<?php
+$lang = array(
+    'appname' => 'Management',
+    'php_version_too_low' => 'PHP version is too low. Please upgrade PHP to 5.3 or higher first; PHP 5.4 or higher is recommended',
+    'step_env_check_desc' => 'Environment and file directory permission check',
+    'online_user' => 'Online Users',
+    'user_growth_statistics' => 'User Growth Statistics',
+    'click_to_view' => 'Click to View',
+    'file_num' => 'File Number',
+    'version_date' => 'Release Date',
+    'online_num' => 'Online Users',
+    'user_total' => 'Total Users',
+    'user_disable' => 'Disabled Users',
+    'last_activity_time' => 'Last Activity Time',
+    'online_time_update_time' => 'Online Time Update Time',
+    'online_user_data' => 'Online User Data',
+    'add_users' => 'Add Users',
+    'login_user' => 'Login Users',
+    'logout_user' => 'Logout Users',
+    'overview' => 'Overview',
+    'MonthyChart' => 'Monthly',
+    'contour' => 'Weekly',
+    'date_line' => 'Daily',
+    'notset' => 'Unlimited',
+    'data.second' => 'Seconds',
+    'data.minute' => 'Minutes',
+    'data.hour' => 'Hours',
+    'data.day' => 'Days',
+);
+
+?>

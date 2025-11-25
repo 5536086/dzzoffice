@@ -3,10 +3,10 @@ function feed_publish(arr,tid,targetid){
 	
 var html=''
 	html+='<div id="comment_'+arr['cid']+'" class="itemfeed" feed-id="'+arr['cid']+'" style="display:none">';
-  	html+='	<div class="left_ifed"> <a href="user.php?uid='+arr['authorid']+'" title="'+arr['author']+'" hidefocus="true">'+arr['avatar']+'</a> </div>';
+  	html+='	<div class="left_ifed"> <a href="user.php?uid='+arr['authorid']+'" title="'+arr['author']+'" hidefocus="true" target="_blank">'+arr['avatar']+'</a> </div>';
   	html+='	<div class="right_ifed">';
     html+=' 	<div class="main_fed">';
-    html+='  		 <div class="source_fed"> <a href="user.php?uid='+arr['authorid']+'" title="'+arr['author']+'" hidefocus="true" class="appuser_sfed skip_mmfed">'+arr['author']+'</a><span class="cont_sfed">'+__lang.talk+'：</span> </div>';
+    html+='  		 <div class="source_fed"> <a href="user.php?uid='+arr['authorid']+'" title="'+arr['author']+'" target="_blank" hidefocus="true" class="appuser_sfed skip_mmfed">'+arr['author']+'</a><span class="cont_sfed">'+__lang.talk+'：</span> </div>';
     html+='  		<div class="master_mfed"> <span class="lquote_mmfed"></span><span class="content_mmfed">'+arr['message']+'</span><span class="rquote_mmfed"></span> </div>';
 	html+='	   <div class="attachment_fed">';
 for(var i in arr['attachs']){
@@ -71,9 +71,9 @@ for(var i in arr['attachs']){
    html+='   		<div class="action_mfed clearfix">';
    html+='     			<div class="btn_amfed">';
    html+='      	 		<ul>';
-   //html+='             			<li class="more_bacfed"><a hidefocus="true" href="javascript:void(0);" onclick="feed_edit(\''+arr['cid']+'\',\''+arr['allowattach']+'\',\''+arr['allowat']+'\',\''+arr['allowsmiley']+'\')">'+__lang.edit+'</a></li>';
-   html+='        	 			<li class="more_bamfed"><a hidefocus="true" href="javascript:void(0);" onclick="feed_delete(\''+arr['cid']+'\',\'comment_'+arr['cid']+'\')">'+__lang.delete+'</a></li>';
-   html+='         				<li class="reply_bamfed"><a hidefocus="true" href="javascript:void(0);" onclick="getReplyForm(\''+arr['cid']+'\',\'0\',\''+arr['allowattach']+'\',\''+arr['allowat']+'\',\''+arr['allowsmiley']+'\');">'+__lang.reply+'</a></li>';
+   //html+='             			<li class="more_bacfed"><a class="dcolor" hidefocus="true" class="dcolor" href="javascript:void(0);" onclick="feed_edit(\''+arr['cid']+'\',\''+arr['allowattach']+'\',\''+arr['allowat']+'\',\''+arr['allowsmiley']+'\')">'+__lang.edit+'</a></li>';
+   html+='        	 			<li class="more_bamfed"><a class="dcolor" hidefocus="true" class="dcolor" href="javascript:void(0);" onclick="feed_delete(\''+arr['cid']+'\',\'comment_'+arr['cid']+'\')">'+__lang.delete+'</a></li>';
+   html+='         				<li class="reply_bamfed"><a class="dcolor" hidefocus="true" class="dcolor" href="javascript:void(0);" onclick="getReplyForm(\''+arr['cid']+'\',\'0\',\''+arr['allowattach']+'\',\''+arr['allowat']+'\',\''+arr['allowsmiley']+'\');">'+__lang.reply+'</a></li>';
    html+='      	 		</ul>';
    html+='     			</div>';
    html+='    		   '+arr['dateline'];
@@ -112,9 +112,9 @@ function feed_reply(arr){
  var html='';
 	 html+='<div id="comment_'+arr['cid']+'" class="cmt_fed">';
      html+='   <div class="item_cfed">';
-     html+='     <div class="left_icfed"> <a href="user.php?uid='+arr['authorid']+'" title="" hidefocus="true"> '+arr['avatar']+' </a> </div>';
+     html+='     <div class="left_icfed"> <a href="user.php?uid='+arr['authorid']+'" title="" hidefocus="true" target="_blank"> '+arr['avatar']+' </a> </div>';
      html+='     <div class="right_icfed">';
-     html+='       <div class="master_cfed"> <a href="user.php?uid='+arr['authorid']+'" title="" class="avatar_mcfed skip_cmfed" hidefocus="true">'+arr['author']+'</a> ';
+     html+='       <div class="master_cfed"> <a href="user.php?uid='+arr['authorid']+'" title="" class="avatar_mcfed skip_cmfed" hidefocus="true" target="_blank">'+arr['author']+'</a> ';
 	 if(arr['rpost']){
 		html+='<span class="amal_fed">'+__lang.reply+'</span>  <a href="user.php?uid='+arr['rpost']['authorid']+'" title="" class="avatar_mcfed skip_cmfed" hidefocus="true" target="_blank">'+arr['rpost']['author']+'</a>'; 
 	 }
@@ -251,7 +251,7 @@ function getReplyForm(tid,pid,allowattach,allowat,allowsmiley){
 }
 
 function feed_edit(cid,allowattach,allowat,allowsmiley){
-	showWindow('publish_edit_'+cid,DZZSCRIPT+'?mod=comment&op=ajax&do=edit&cid='+cid+'&allowattach='+allowattach+'&allowat='+allowat+'&allowsmiley='+allowsmiley);
+	showWindow('publish_edit_'+cid,DZZSCRIPT+'?mod=comment&op=ajax&do=edit&cid='+cid+'&allowattach='+allowattach+'&allowat='+allowat+'&allowsmiley='+allowsmiley,'get',0);
 }
 function feed_edit_finish(cid,allowattach,allowat,allowsmiley){
 	jQuery.get(DZZSCRIPT+'?mod=comment&op=ajax&do=getcommentbycid&cid='+cid+'&allowattach='+allowattach+'&allowat='+allowat+'&allowsmiley='+allowsmiley,function(html){
@@ -278,6 +278,8 @@ function feed_delete(cid,domid,tid){
 			try{
 				callback_by_comment(domid,'delete');
 			}catch(e){}
+		}).fail(function(jqXHR, textStatus, errorThrown) {
+			showmessage('{lang do_failed}' + textStatus, 'danger', 3000, 1);
 		});
 	}
 }
@@ -325,11 +327,13 @@ function feed_attach_saveto(qid){
 	showWindow('saveto','index.php?mod=system&op=filewindow&type=2','get','0',function(fid,data){
 		jQuery.post(url,{fid:fid},function(json){
 			if(json.error){
-				showmessage(json.error,'danger',3000,1);
+				showmessage(json.error,'danger','3000',1);
 			}else{
-				showmessage(__lang.savetosuccess+data.relativepath+json.filename,'success',3000,1);
+				showmessage(__lang.savetosuccess+data.relativepath+json.filename,'success','3000',1);
 			}
-		},'json');
+		},'json').fail(function (jqXHR, textStatus, errorThrown) {
+            showmessage(__lang.do_failed, 'error', 3000, 1);
+        });
 	});
 	
 	
